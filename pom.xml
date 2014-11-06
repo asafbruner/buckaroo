@@ -5,7 +5,7 @@
     <artifactId>com.sap.river</artifactId>
     <packaging>bundle</packaging>
     <version>0.1.0.BUILD-SNAPSHOT</version>
-    <name>buckaroo</name>
+    <name>com-sap-river</name>
     <organization>
         <name>Your project/company name goes here (used in copyright and vendor information in the manifest)</name>
     </organization>
@@ -237,5 +237,40 @@
                 </configuration>
             </plugin>
         </plugins>
+        <pluginManagement>
+        	<plugins>
+        		<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+        		<plugin>
+        			<groupId>org.eclipse.m2e</groupId>
+        			<artifactId>lifecycle-mapping</artifactId>
+        			<version>1.0.0</version>
+        			<configuration>
+        				<lifecycleMappingMetadata>
+        					<pluginExecutions>
+        						<pluginExecution>
+        							<pluginExecutionFilter>
+        								<groupId>
+        									org.apache.felix
+        								</groupId>
+        								<artifactId>
+        									maven-scr-plugin
+        								</artifactId>
+        								<versionRange>
+        									[1.7.2,)
+        								</versionRange>
+        								<goals>
+        									<goal>scr</goal>
+        								</goals>
+        							</pluginExecutionFilter>
+        							<action>
+        								<ignore></ignore>
+        							</action>
+        						</pluginExecution>
+        					</pluginExecutions>
+        				</lifecycleMappingMetadata>
+        			</configuration>
+        		</plugin>
+        	</plugins>
+        </pluginManagement>
     </build>
 </project>
