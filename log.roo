@@ -1,0 +1,4 @@
+// Spring Roo 1.2.5.RELEASE [rev 8341dc2] log opened at 2014-11-06 13:28:19
+addon create simple --topLevelPackage com.sap.river --projectName buckaroo
+exit
+// Spring Roo 1.2.5.RELEASE [rev 8341dc2] log closed at 2014-11-06 13:29:22
