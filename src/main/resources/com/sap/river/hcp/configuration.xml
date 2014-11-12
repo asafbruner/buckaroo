@@ -1,6 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <configuration>
 	<river>
+		<properties>
+			<sap.cloud.sdk.version>1.64.15</sap.cloud.sdk.version>
+			<sap.cloud.host>neo.ondemand.com</sap.cloud.host>
+			<sap.cloud.application>${artifactId}</sap.cloud.application>
+		</properties>
+		<dependencies>
+			<dependency>
+				<!-- neo cloud plugin -->
+				<groupId>com.sap.cloud</groupId>
+  				<artifactId>neo-java-web-maven-plugin</artifactId>
+  				<version>${sap.cloud.sdk.version}</version>
+  				<scope>provided</scope>
+			</dependency>
+		</dependencies>
 		<build>
 			<plugins>
 				<plugin>

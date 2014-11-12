@@ -7,8 +7,10 @@ import java.util.logging.Logger;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.springframework.roo.project.Dependency;
 import org.springframework.roo.project.Plugin;
 import org.springframework.roo.project.ProjectOperations;
+import org.springframework.roo.project.Property;
 import org.springframework.roo.project.maven.Pom;
 import org.springframework.roo.support.util.XmlUtils;
 import org.w3c.dom.Element;
@@ -19,14 +21,8 @@ public class DeployOperationsImpl implements DeployOperations {
 	
 	private static Logger LOGGER = Logger.getLogger(DeployOperationsImpl.class.getName());
 	
-	/** plugins XPath in pox.xml */
-	@SuppressWarnings("unused")
-	private static final String PROJECT_BUILD_PLUGIN_PATH = "/project/build/plugins/plugin";
-	/** plugin XPath in pom.xml */
-	@SuppressWarnings("unused")
-	private static final String PROJECT_BUILD_PLUGINS_PATH = "/project/build/plugins";
-	/** plugin XPath in configuration.xml */
-	private static final String CONFIGURATION_PLUGIN_PATH = "/configuration/river/build/plugins/plugin";
+	private final String CONFIGURATION_BASE_PATH = "/configuration/river";
+	
 	
 	/**
 	 * OSGi helpers that allows the plug-in to configure river specific details in the project
@@ -57,7 +53,7 @@ public class DeployOperationsImpl implements DeployOperations {
 		// Identify the required plugins
         final List<Plugin> requiredPlugins = new ArrayList<Plugin>();
 		
-		final List<Element> buildPlugins = XmlUtils.findElements(CONFIGURATION_PLUGIN_PATH, configuration);
+		final List<Element> buildPlugins = XmlUtils.findElements(CONFIGURATION_BASE_PATH + "/build/plugins/plugin", configuration);
         for (final Element pluginElement : buildPlugins) {
             requiredPlugins.add(new Plugin(pluginElement));
         }
@@ -65,6 +61,26 @@ public class DeployOperationsImpl implements DeployOperations {
         //update the POM the new configuration
         projectOperations.removeBuildPlugins(currentPom.getModuleName(), requiredPlugins); //TODO: needed?
         projectOperations.addBuildPlugins(currentPom.getModuleName(), requiredPlugins);
+        
+        //Identify the dependencies
+        final List<Dependency> requiredDependencies = new ArrayList<Dependency>();
+        
+        final List<Element> dependencies = XmlUtils.findElements(CONFIGURATION_BASE_PATH + "/dependencies/dependency", configuration);
+        for (final Element dependencyElement : dependencies) {
+            requiredDependencies.add(new Dependency(dependencyElement));
+        }
+        
+        //update the POM the new configuration
+        projectOperations.removeDependencies(currentPom.getModuleName(), requiredDependencies);
+        projectOperations.addDependencies(currentPom.getModuleName(), requiredDependencies);
+        
+        //Identify the properties
+        final List<Element> pomProperties = XmlUtils.findElements(CONFIGURATION_BASE_PATH + "/properties/*", configuration);
+        for (final Element property : pomProperties) {
+            projectOperations.addProperty(currentPom.getModuleName(), new Property(property));
+        }
+        
+        
 	}
 
 	///////////////////////////////////////////
