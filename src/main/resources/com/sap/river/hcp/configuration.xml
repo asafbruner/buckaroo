@@ -1,54 +1,60 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <configuration>
 	<river>
+		<properties>
+			<sap.cloud.sdk.version>1.64.15</sap.cloud.sdk.version>
+			<sap.cloud.host>neo.ondemand.com</sap.cloud.host>
+			<sap.cloud.application>${project.artifactId}</sap.cloud.application>
+			<sap.cloud.sdk.config.proxy.host>proxy</sap.cloud.sdk.config.proxy.host>
+			<sap.cloud.sdk.config.proxy.port>8080</sap.cloud.sdk.config.proxy.port>
+		</properties>
+		<dependencies>
+			<dependency>
+				<!-- neo cloud plugin -->
+				<groupId>com.sap.cloud</groupId>
+				<artifactId>neo-java-web-maven-plugin</artifactId>
+				<version>${sap.cloud.sdk.version}</version>
+				<scope>provided</scope>
+			</dependency>
+		</dependencies>
 		<build>
 			<plugins>
 				<plugin>
-						<groupId>com.sap.cloud</groupId>
-						<artifactId>neo-java-web-maven-plugin</artifactId>
-						<version>${sap.cloud.sdk.version}</version>
-						<executions>
-							<execution>
-								<id>deploy-cloud-application</id>
-								<!-- <phase>install</phase> -->
-								<goals>
-									<goal>deploy</goal>
-								</goals>
-							</execution>
-							<!-- This execution can be overridden in the sample pom.xml in order 
-								to execute additional steps between deployment and start of the sample application. 
-								The additional execution must be specified with the neo-java-web-maven-plugin 
-								and the same id "prepare-cloud-application" and phase "pre-integration-test" -->
-							<execution>
-								<id>prepare-cloud-application</id>
-								<!--  <phase>install</phase> -->
-							</execution>
-							<execution>
-								<id>start-cloud-application</id>
-								<!-- <phase>install</phase> -->
-								<goals>
-									<goal>restart</goal>
-								</goals>
-							</execution>
-							<execution>
-								<id>stop-cloud-application</id>
-								<!-- <phase>post-integration-test</phase> -->
-								<!-- <goals> <goal>stop</goal> </goals> -->
-							</execution>
-						</executions>
+					<groupId>com.sap.cloud</groupId>
+					<artifactId>neo-java-web-maven-plugin</artifactId>
+					<version>${sap.cloud.sdk.version}</version>
+					<executions>
+						<execution>
+							<!-- install the SDK at the initialize phase of the project -->
+							<phase>initialize</phase>
+							<goals>
+								<!-- Call the SDK installation goal to download the sdk -->
+								<goal>install-sdk</goal>
+							</goals>
+						</execution>
 						<configuration>
-							<skip>${skipDeploy}</skip>
-							<sdkInstallPath>${sap.cloud.sdk.path}</sdkInstallPath>
-							<host>${sap.cloud.host}</host>
-							<user>${sap.cloud.username}</user>
-							<password>${sap.cloud.password}</password>
-							<account>${sap.cloud.account}</account>
-							<application>${sap.cloud.application}</application>
-							<source>${project.build.directory}/${project.artifactId}-${project.version}.war</source>
-							<synchronous>true</synchronous>
-							<javaVersion>7</javaVersion>
+							<skip>${skipNeoSDK}</skip>
 						</configuration>
-					</plugin>
+					</executions>
+
+					<configuration>
+						<skip>${skipDeploy}</skip>
+						<sdkInstallPath>${project.build.directory}/sdk</sdkInstallPath>
+						<host>${sap.cloud.host}</host>
+						<user>${sap.cloud.username}</user>
+						<password>${sap.cloud.password}</password>
+						<account>${sap.cloud.account}</account>
+						<application>${sap.cloud.application}</application>
+						<source>${project.build.directory}/${project.artifactId}-${project.version}.war</source>
+						<synchronous>true</synchronous>
+						<javaVersion>1.7</javaVersion>
+						<!-- proxy configuration -->
+						<httpsProxyHost>${sap.cloud.sdk.config.proxy.host}</httpsProxyHost>
+						<httpsProxyPort>${sap.cloud.sdk.config.proxy.port}</httpsProxyPort>
+						<consoleHttpsProxyHost>${sap.cloud.sdk.config.proxy.host}</consoleHttpsProxyHost>
+						<consoleHttpsProxyPort>${sap.cloud.sdk.config.proxy.port}</consoleHttpsProxyPort>
+					</configuration>
+				</plugin>
 			</plugins>
 		</build>
 	</river>
