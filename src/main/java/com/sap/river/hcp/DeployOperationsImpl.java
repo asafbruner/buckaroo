@@ -1,13 +1,17 @@
 package com.sap.river.hcp;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.springframework.roo.project.Dependency;
+import org.springframework.roo.project.MavenOperations;
 import org.springframework.roo.project.Plugin;
 import org.springframework.roo.project.ProjectOperations;
 import org.springframework.roo.project.Property;
@@ -23,12 +27,17 @@ public class DeployOperationsImpl implements DeployOperations {
 	
 	private final String CONFIGURATION_BASE_PATH = "/configuration/river";
 	
+	private final String SAP_CLOUD_ACCOUNT_PROP = "sap.cloud.account";
+	private final String SAP_CLOUD_USERNAME_PROP = "sap.cloud.user";
+	private final String SAP_CLOUD_PASSWORD_PROP = "sap.cloud.password";
 	
 	/**
 	 * OSGi helpers that allows the plug-in to configure river specific details in the project
 	 * setup files (such as pom.xml etc.)
 	 */
 	@Reference private ProjectOperations projectOperations;
+	@Reference private MavenOperations mavenOperations;
+	
 	//@Reference private FileManager fileManager;
 	//@Reference private PathResolver pathResolver;
 	
@@ -43,7 +52,7 @@ public class DeployOperationsImpl implements DeployOperations {
 	}
 
 	@Override
-	public void setupDeploy() {
+	public void setupDeploy(final String account, final String userName, final String password) {
 		Pom currentPom = getCurrentPOM();
 		LOGGER.info("deploy "+ currentPom.getPath());
 		
@@ -74,13 +83,42 @@ public class DeployOperationsImpl implements DeployOperations {
         projectOperations.removeDependencies(currentPom.getModuleName(), requiredDependencies);
         projectOperations.addDependencies(currentPom.getModuleName(), requiredDependencies);
         
-        //Identify the properties
+        //Identify the fixed properties
         final List<Element> pomProperties = XmlUtils.findElements(CONFIGURATION_BASE_PATH + "/properties/*", configuration);
         for (final Element property : pomProperties) {
             projectOperations.addProperty(currentPom.getModuleName(), new Property(property));
         }
         
+        //if options are specified, create custom properties for them
+        updateInputProperties(currentPom.getModuleName(), account, userName, password);
         
+	}
+	
+	@Override
+	public boolean isDeployAvailable() {
+		//TODO: implement context-aware logic
+		return true;
+	}
+
+	@Override
+	public void deployCommand(String command, String account, String userName,
+			String password) {
+		Validate.notNull(command, "Plugin command required");
+		StringBuffer sb = (new StringBuffer("neo-java-web:")).append(command);
+		if (!StringUtils.isBlank(account)) {
+			sb.append(" -D").append(SAP_CLOUD_ACCOUNT_PROP).append("=").append(account);
+        }
+        if (!StringUtils.isBlank(userName)) {
+        	sb.append(" -D").append(SAP_CLOUD_USERNAME_PROP).append("=").append(userName);
+        }
+        if (!StringUtils.isBlank(password)) {
+        	sb.append(" -D").append(SAP_CLOUD_PASSWORD_PROP).append("=").append(password);
+        }
+		try {
+			mavenOperations.executeMvnCommand(sb.toString());
+		} catch (IOException ioe) {
+			throw new IllegalStateException(ioe);
+		}
 	}
 
 	///////////////////////////////////////////
@@ -91,6 +129,18 @@ public class DeployOperationsImpl implements DeployOperations {
 	 */
 	private Pom getCurrentPOM() {
 		return projectOperations.getFocusedModule();
+	}
+	
+	private void updateInputProperties(final String moduleName, final String account, final String userName, final String password) {
+		if (!StringUtils.isBlank(account)) {
+        	projectOperations.addProperty(moduleName, new Property(SAP_CLOUD_ACCOUNT_PROP, account));
+        }
+        if (!StringUtils.isBlank(userName)) {
+        	projectOperations.addProperty(moduleName, new Property(SAP_CLOUD_USERNAME_PROP, userName));
+        }
+        if (!StringUtils.isBlank(password)) {
+        	projectOperations.addProperty(moduleName, new Property(SAP_CLOUD_PASSWORD_PROP, password));
+        }
 	}
 	
 	/** remove plug-in entry from the POM Document
