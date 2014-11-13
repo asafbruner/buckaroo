@@ -1,0 +1,101 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a65312a_e8c41b61",
+        "filename": "src/main/java/com/sap/river/hcp/DeployLocalCommands.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002914
+      },
+      "writtenOn": "2014-11-13T07:35:00Z",
+      "side": 1,
+      "message": "I\u0027d like to suggest that we add all deploy related commands to the DeployCommands trio to ease maintenance. What do you think?",
+      "revId": "fb677a620d941591b378af79a54c3fb97167c9e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a65312a_48a1cfa8",
+        "filename": "src/main/java/com/sap/river/hcp/DeployLocalOperationsImpl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002914
+      },
+      "writtenOn": "2014-11-13T07:35:00Z",
+      "side": 1,
+      "message": "if we push this code to the DeploOperationImpl and extract the common code to functions (as you suggested ) we can save some code here",
+      "revId": "fb677a620d941591b378af79a54c3fb97167c9e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a65312a_28a613c2",
+        "filename": "src/main/java/com/sap/river/hcp/DeployOperationsImpl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002914
+      },
+      "writtenOn": "2014-11-13T07:35:00Z",
+      "side": 1,
+      "message": "lets have a common formatter to all the team. Do you want to send yours?",
+      "revId": "fb677a620d941591b378af79a54c3fb97167c9e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a65312a_88abe788",
+        "filename": "src/main/resources/com/sap/river/hcp/configuration.xml",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1002914
+      },
+      "writtenOn": "2014-11-13T07:35:00Z",
+      "side": 1,
+      "message": "how about unify the local deploy setup and the remote one to a single step and configuration? most changes are that the user will want both",
+      "range": {
+        "startLine": 3,
+        "startChar": 7,
+        "endLine": 3,
+        "endChar": 8
+      },
+      "revId": "fb677a620d941591b378af79a54c3fb97167c9e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a65312a_68b00bf5",
+        "filename": "src/main/resources/com/sap/river/hcp/configuration.xml",
+        "patchSetId": 1
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002914
+      },
+      "writtenOn": "2014-11-13T07:35:00Z",
+      "side": 1,
+      "message": "you do not need to bind this phase to integration test any more. I bounded mine to initialization phase which make more sense in situation where the user has control over the application invocation. Here you start and stop you application within the build cycle",
+      "range": {
+        "startLine": 117,
+        "startChar": 17,
+        "endLine": 117,
+        "endChar": 18
+      },
+      "revId": "fb677a620d941591b378af79a54c3fb97167c9e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
