@@ -1,0 +1,131 @@
+project --topLevelPackage com.sap --projectName beneroo
+jpa setup --provider ECLIPSELINK --database HYPERSONIC_IN_MEMORY 
+
+// **************************************
+// 			ORDER_DETAILS
+// **************************************
+
+entity jpa --class ~.persistence.OrderDetails --table ORDER_DETAILS --identifierField id  --identifierType java.lang.Long --testAutomatically 
+field number --fieldName quantity --type long
+
+// **************************************
+// 			USER_POINTS
+// **************************************
+
+entity jpa --class ~.persistence.UserPoints --table USER_POINTS --identifierField id  --identifierType java.lang.Long --identifierColumn ID --testAutomatically 
+field number --type java.lang.Long --fieldName entitlementPoints --column ENTITLEMENT_POINTS
+field number --type java.lang.Long --fieldName availablePoints --column AVAILABLE_POINTS
+
+// **************************************
+// 			BENEFIT_TYPES
+// **************************************
+
+entity jpa --class ~.persistence.BenefitType --table BENEFIT_TYPES --identifierField id --identifierType java.lang.Long --identifierColumn TYPE_ID --testAutomatically 
+field string --fieldName name --unique true
+field number --fieldName value_ --type long --column value
+field boolean --fieldName active
+
+// **************************************
+// 			BENEFIT_INFO
+// **************************************
+
+entity jpa --class ~.persistence.BenefitInfo --table BENEFIT_INFO --identifierField id  --identifierType java.lang.Long --identifierColumn BENEFIT_INFO_ID --testAutomatically 
+field string --fieldName name --unique true
+field string --fieldName description
+field string --fieldName link
+
+// **************************************
+// 			ORDERS
+// **************************************
+entity jpa --class ~.persistence.EOrder --table ORDERS --identifierField id  --identifierType java.lang.Long --identifierColumn ORDER_ID --testAutomatically 
+field number --fieldName total --type long
+
+// **************************************
+// 			CAMPAIGNS
+// **************************************
+entity jpa --class ~.persistence.Campaign --table CAMPAIGNS --identifierField id  --identifierType java.lang.Long --identifierColumn CAMPAIGN_ID --testAutomatically 
+field string --fieldName name --unique true
+field date --fieldName startDate --type java.util.Date --persistenceType JPA_TIMESTAMP --column START_DATE
+field date --fieldName endDate --type java.util.Date --persistenceType JPA_TIMESTAMP --column END_DATE
+field boolean --fieldName active
+
+// **************************************
+// 			USERS
+// **************************************
+
+entity jpa --class ~.persistence.EUser --table USERS --identifierField id  --identifierType java.lang.Long --identifierColumn ID --testAutomatically 
+field string --fieldName firstName --column FIRST_NAME
+field string --fieldName lastName --column LAST_NAME
+field string --fieldName userId --unique true --column USER_ID
+field string --fieldName email
+
+
+// **************************************
+// 			ORDER_DETAILS REFERENCES
+// **************************************
+
+focus --class ~.persistence.OrderDetails
+field reference --fieldName _order --type ~.persistence.EOrder --joinColumnName ORDER_ID --referencedColumnName ORDER_ID --cardinality MANY_TO_ONE
+field number --type java.lang.Long --fieldName orderId --column ORDER_ID
+field reference --fieldName benefitType --type ~.persistence.BenefitType --joinColumnName BENEFIT_TYPE_ID --referencedColumnName TYPE_ID --cardinality MANY_TO_ONE 
+field number --type java.lang.Long --fieldName benefitId --column BENEFIT_TYPE_ID
+
+// **************************************
+// 			USER_POINTS REFERENCES
+// **************************************
+
+focus --class ~.persistence.UserPoints
+field reference --fieldName _user --type ~.persistence.EUser --joinColumnName USER_ID --referencedColumnName ID --cardinality MANY_TO_ONE
+field number --type java.lang.Long --fieldName userId --column USER_ID
+field reference --fieldName campaign --type ~.persistence.Campaign --joinColumnName CAMPAIGN_ID --referencedColumnName CAMPAIGN_ID --cardinality MANY_TO_ONE
+field number --type java.lang.Long --fieldName campaignId --column CAMPAIGN_ID
+
+// **************************************
+// 			BENEFIT_TYPES REFERENCES
+// **************************************
+
+focus --class ~.persistence.BenefitType
+field reference --fieldName benefitInfo --type ~.persistence.BenefitInfo --joinColumnName BENEFIT_INFO_ID --referencedColumnName BENEFIT_INFO_ID --cardinality MANY_TO_ONE 
+field number --type java.lang.Long --fieldName benefitId --column BENEFIT_INFO_ID  --unique true
+field list --fieldName orders --type ~.persistence.OrderDetails --cardinality ONE_TO_MANY --mappedBy benefitType --fetch EAGER
+
+// **************************************
+// 			BENEFIT_INFO REFERENCES
+// **************************************
+
+focus --class ~.persistence.BenefitInfo
+field list --fieldName types --type ~.persistence.BenefitType --cardinality ONE_TO_MANY --mappedBy benefitInfo --fetch EAGER
+
+// **************************************
+// 			ORDERS REFERENCES
+// **************************************
+
+focus --class ~.persistence.EOrder
+field reference --fieldName campaign --type ~.persistence.Campaign --joinColumnName CAMPAIGN_ID --referencedColumnName CAMPAIGN_ID --cardinality MANY_TO_ONE
+field number --type java.lang.Long --fieldName campaignId --column CAMPAIGN_ID
+field reference --fieldName _user --type ~.persistence.EUser --joinColumnName USER_ID --referencedColumnName ID --cardinality MANY_TO_ONE
+field number --type java.lang.Long --fieldName userId --column USER_ID
+field list --fieldName orderDetails --type ~.persistence.OrderDetails --cardinality ONE_TO_MANY --mappedBy _order --fetch EAGER
+
+// **************************************
+// 			CAMPAIGNS REFERENCES
+// **************************************
+
+focus --class ~.persistence.Campaign
+field reference --fieldName owner --type ~.persistence.EUser --joinColumnName OWNER_ID --referencedColumnName ID --cardinality MANY_TO_ONE
+field number --type java.lang.Long --fieldName ownerId --column OWNER_ID
+field list --fieldName orders --type ~.persistence.EOrder --cardinality ONE_TO_MANY --mappedBy campaign --fetch EAGER
+field list --fieldName userPoints --type ~.persistence.UserPoints --cardinality ONE_TO_MANY --mappedBy campaign --fetch EAGER
+
+// **************************************
+// 			USERS REFERENCES
+// **************************************
+
+focus --class ~.persistence.EUser
+field reference --fieldName hrManager --type ~.persistence.EUser --joinColumnName HR_USER_ID --referencedColumnName ID --cardinality MANY_TO_ONE
+field number --type java.lang.Long --fieldName hrId --column HR_USER_ID
+field list --fieldName employees --type ~.persistence.EUser --cardinality ONE_TO_MANY --mappedBy hrManager --fetch EAGER
+field list --fieldName orders --type ~.persistence.EOrder --cardinality ONE_TO_MANY --mappedBy _user --fetch EAGER
+field list --fieldName userPoints --type ~.persistence.UserPoints --cardinality ONE_TO_MANY --mappedBy _user --fetch EAGER
+field list --fieldName campaigns --type ~.persistence.Campaign --cardinality ONE_TO_MANY --mappedBy owner --fetch EAGER
+
