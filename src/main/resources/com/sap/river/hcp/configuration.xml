@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <configuration>
 	<river>
+	<deploy>
 		<properties>
 			<sap.cloud.sdk.version>1.64.15</sap.cloud.sdk.version>
 			<sap.cloud.host>neo.ondemand.com</sap.cloud.host>
@@ -57,5 +58,118 @@
 				</plugin>
 			</plugins>
 		</build>
+		</deploy>
+		<deploy-local>
+			<properties>
+				<sap.cloud.sdk.version>1.64.15</sap.cloud.sdk.version>
+				<sap.cloud.sdk.path>${project.build.directory}/sdk</sap.cloud.sdk.path>
+				<local.server.root>${project.build.directory}/server</local.server.root>
+				<local.server.host>localhost</local.server.host>
+				<local.server.console.port>9033</local.server.console.port>
+				<local.server.jmx.port>9004</local.server.jmx.port>
+				<local.server.http.port>9080</local.server.http.port>
+				<local.server.https.port>9443</local.server.https.port>
+				<local.server.ajp.port>9009</local.server.ajp.port>
+			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>com.sap.cloud</groupId>
+					<artifactId>neo-java-web-maven-plugin</artifactId>
+					<version>${sap.cloud.sdk.version}</version>
+					<scope>provided</scope>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-dependency-plugin</artifactId>
+						<version>2.8</version>
+						<executions>
+							<execution>
+								<id>install-common-sources</id>
+								<phase>initialize</phase>
+								<goals>
+									<goal>unpack</goal>
+								</goals>
+								<configuration>
+									<artifactItems>
+										<artifactItem>
+											<groupId>com.sap.cloud</groupId>
+											<artifactId>neo-java-web-sdk</artifactId>
+											<version>${sap.cloud.sdk.version}</version>
+											<!-- <classifier>sources</classifier> -->
+											<type>zip</type>
+											<overWrite>true</overWrite>
+											<outputDirectory>${project.build.directory}/sdk</outputDirectory>
+											<includes>**/*</includes>
+										</artifactItem>
+									</artifactItems>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>com.sap.cloud</groupId>
+						<artifactId>neo-java-web-maven-plugin</artifactId>
+						<version>${sap.cloud.sdk.version}</version>
+						<executions>
+							<execution>
+								<id>cleanup-local-server</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>stop-local</goal>
+								</goals>
+								<configuration>
+									<failOnError>false</failOnError>
+								</configuration>
+							</execution>
+							<execution>
+								<id>install-local-server</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>install-local</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>deploy-local-application</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>deploy-local</goal>
+								</goals>
+							</execution>
+							<!-- The maven-antrun-plugin execution prepare-local-application defined 
+								farther below will run between this deploy-local-application and start-local-server 
+								executions -->
+							<execution>
+								<id>start-local-server</id>
+								<phase>integration-test</phase>
+								<goals>
+									<goal>start-local</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>stop-local-server</id>
+								<phase>post-integration-test</phase>
+								<!-- <goals> <goal>stop-local</goal> </goals> -->
+							</execution>
+						</executions>
+						<configuration>
+							<skip>${skipIntegrationTests}</skip>
+							<sdkInstallPath>${sap.cloud.sdk.path}</sdkInstallPath>
+							<location>${local.server.root}</location>
+							<consolePort>${local.server.console.port}</consolePort>
+							<httpPort>${local.server.http.port}</httpPort>
+							<httpsPort>${local.server.https.port}</httpsPort>
+							<jmxPort>${local.server.jmx.port}</jmxPort>
+							<ajpPort>${local.server.ajp.port}</ajpPort>
+							<source>${project.build.directory}/${project.build.finalName}.war</source>
+							<waitUrl>http://${local.server.host}:${local.server.http.port}/n/ping</waitUrl>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		
+		</deploy-local>
 	</river>
 </configuration>
