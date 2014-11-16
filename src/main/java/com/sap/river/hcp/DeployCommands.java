@@ -6,6 +6,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.component.ComponentContext;
 import org.springframework.roo.shell.CliAvailabilityIndicator;
 import org.springframework.roo.shell.CliCommand;
+import org.springframework.roo.shell.CliOption;
 import org.springframework.roo.shell.CommandMarker;
 
 /**
@@ -60,19 +61,53 @@ public class DeployCommands implements CommandMarker {
      * @return true (default) if the command should be visible at this stage, false otherwise
      */
 	@CliAvailabilityIndicator("hcp setup deploy")
-	boolean isDeployAvailable() {
+	boolean isSetupDeployAvailable() {
 		return operations.isSetupDeployAvailable();
 	}
 	
 	/**
-     * Register hcp-deploy command with roo shell.
+     * This method is optional. It allows automatic command hiding in situations when the command should not be visible.
+     *
+     * You can define multiple methods annotated with {@link CliAvailabilityIndicator} if your commands have differing
+     * visibility requirements.
+     * 
+     * @return true (default) if the command should be visible at this stage, false otherwise
+     */
+	@CliAvailabilityIndicator("hcp deploy")
+	boolean isDeployAvailable() {
+		return operations.isDeployAvailable();
+	}
+	
+	
+	/**
+     * Configure the maven setup needed for activating deploy to HCP
      * 
      * @param accountName - The id of your HCP account 
      * @param userName - Your SCN login name which serves as your user name on your HCP account
      * @param password - Your SCN login password which serves as your password to your HCP account
      */
     @CliCommand(value = "hcp setup deploy", help = "setup the configuration for deployment of web application to HANA Cloud Platform")
-    public void setupDeploy() {
-    	operations.setupDeploy();
+    public void setupDeploy(
+    		@CliOption(key = "account", help = "The id of the account on HANA cloud platform") final String account,
+    		@CliOption(key = "user", help = "The user name to log into the account") final String userName,
+    		@CliOption(key = "password", help = "The login password of the user") final String password) {
+    	operations.setupDeploy(account, userName, password);
+    }
+    
+    /**
+     * Activate deploy of project's output to HCP
+     * 
+     * @param command - goal for the neo web plugin
+     * @param accountName - The id of your HCP account 
+     * @param userName - Your SCN login name which serves as your user name on your HCP account
+     * @param password - Your SCN login password which serves as your password to your HCP account
+     */
+    @CliCommand(value = "hcp deploy", help = "Deploy the web application to HANA Cloud Platform")
+    public void deployCommand(
+    		@CliOption(key = "goal", unspecifiedDefaultValue = "deploy", help = "goal for the neo web plugin") final String command,
+    		@CliOption(key = "account", help = "The id of the account on HANA cloud platform") final String account,
+    		@CliOption(key = "user", help = "The user name to log into the account") final String userName,
+    		@CliOption(key = "password", help = "The login password of the user") final String password) {
+    	operations.deployCommand(command, account, userName, password);
     }
 }

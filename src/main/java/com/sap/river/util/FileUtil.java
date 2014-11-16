@@ -39,7 +39,7 @@ public class FileUtil {
 		fileManager.delete(backupFile);
 	}
 	
-	/** copy the source file to the destination fiel name
+	/** copy the source file to the destination file name
 	 * @param fileManager -  File Manager which handle OS operations
 	 * @param sourceFile - The name of the file to copy
 	 * @param targetFile - The name of new file
