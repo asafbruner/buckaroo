@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_98695d28",
+        "filename": "src/main/java/com/sap/river/hcp/DeployCommands.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-11-16T22:34:28Z",
+      "side": 1,
+      "message": "Please send all those strings to product / KM review.",
+      "range": {
+        "startLine": 93,
+        "startChar": 43,
+        "endLine": 93,
+        "endChar": 73
+      },
+      "revId": "4bfcc773dbc541d8b6e25f71ca4b5e7b10a7b57a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_38603135",
+        "filename": "src/main/java/com/sap/river/hcp/DeployOperationsImpl.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-11-16T22:34:28Z",
+      "side": 1,
+      "message": "Do we really need this?",
+      "range": {
+        "startLine": 53,
+        "startChar": 2,
+        "endLine": 53,
+        "endChar": 47
+      },
+      "revId": "4bfcc773dbc541d8b6e25f71ca4b5e7b10a7b57a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_f876a905",
+        "filename": "src/main/java/com/sap/river/hcp/DeployOperationsImpl.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-11-16T22:34:28Z",
+      "side": 1,
+      "message": "Please delete all the commented out code in this file",
+      "range": {
+        "startLine": 169,
+        "startChar": 0,
+        "endLine": 197,
+        "endChar": 4
+      },
+      "revId": "4bfcc773dbc541d8b6e25f71ca4b5e7b10a7b57a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
