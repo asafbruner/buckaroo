@@ -27,5 +27,15 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="C:/Users/i069711/.m2/repository/org/springframework/roo/org.springframework.roo.addon.dod/1.2.6.BUILD-SNAPSHOT/org.springframework.roo.addon.dod-1.2.6.BUILD-SNAPSHOT.jar">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+			<attribute name="maven.groupId" value="org.springframework.roo"/>
+			<attribute name="maven.artifactId" value="org.springframework.roo.addon.dod"/>
+			<attribute name="maven.version" value="1.2.6.BUILD-SNAPSHOT"/>
+			<attribute name="maven.scope" value="compile"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="/org.springframework.roo.addon.test"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
