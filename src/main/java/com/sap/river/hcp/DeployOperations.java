@@ -17,7 +17,16 @@ public interface DeployOperations {
 	 * 
 	 * @return true if the conditions for enabling deploy command are met
 	 */
-	boolean isSetupDeployAvailable();
+	boolean isSetupDeployRemoteAvailable();
 	
-	void setupDeploy();
+	void setupDeployRemote();
+	
+	/**
+	 * deploy command is available when a war file is available under the target directory
+	 * 
+	 * @return true if the conditions for enabling deploy command are met
+	 */
+	boolean isSetupDeployLocalAvailable();
+
+	void setupDeployLocal(String account, String userName, String password);
 }

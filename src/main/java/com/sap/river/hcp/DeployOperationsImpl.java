@@ -21,7 +21,10 @@ public class DeployOperationsImpl implements DeployOperations {
 
 	private static Logger LOGGER = Logger.getLogger(DeployOperationsImpl.class.getName());
 
-	private final String CONFIGURATION_BASE_PATH = "/configuration/river/deploy";
+	private final String REMOTE_CONFIGURATION_BASE_PATH = "/configuration/river/deploy";
+	private final String LOCAL_CONFIGURATION_BASE_PATH = "/configuration/river/deploy-local";
+	private final String LOCAL_CONFIGURATION_PLUGIN_PATH = LOCAL_CONFIGURATION_BASE_PATH + "/build/plugins/plugin";
+	private final String LOCAL_CONFIGURATION_PROPERTIES_PATH = LOCAL_CONFIGURATION_BASE_PATH + "/properties/*";
 
 	/**
 	 * OSGi helpers that allows the plug-in to configure river specific details in the project setup files (such as pom.xml etc.)
@@ -37,49 +40,53 @@ public class DeployOperationsImpl implements DeployOperations {
 	// /////////////////////////////////////////
 
 	@Override
-	public boolean isSetupDeployAvailable() {
-		// TODO: check if the war exists under target(?) directory
+	public boolean isSetupDeployRemoteAvailable() {
 		return true;
 	}
 
 	@Override
-	public void setupDeploy() {
+	public void setupDeployRemote() {
 		Pom currentPom = getCurrentPOM();
 		LOGGER.info("deploy " + currentPom.getPath());
 
 		// read the configuration file from the current CLASSPATH
 		Element configuration = XmlUtils.getConfiguration(getClass());
+		
+		String moduleName = currentPom.getModuleName();
 
-		// Identify the required plugins
-		final List<Plugin> requiredPlugins = new ArrayList<Plugin>();
+		// update the plugins in the POM, based on configuration
+		replacePlugins(REMOTE_CONFIGURATION_BASE_PATH + "/build/plugins/plugin", configuration, moduleName);
 
-		final List<Element> buildPlugins = XmlUtils.findElements(CONFIGURATION_BASE_PATH + "/build/plugins/plugin", configuration);
-		for (final Element pluginElement : buildPlugins) {
-			requiredPlugins.add(new Plugin(pluginElement));
-		}
-
-		// update the POM the new configuration
-		projectOperations.removeBuildPlugins(currentPom.getModuleName(), requiredPlugins); // TODO: needed?
-		projectOperations.addBuildPlugins(currentPom.getModuleName(), requiredPlugins);
-
-		// Identify the dependencies
-		final List<Dependency> requiredDependencies = new ArrayList<Dependency>();
-
-		final List<Element> dependencies = XmlUtils.findElements(CONFIGURATION_BASE_PATH + "/dependencies/dependency", configuration);
-		for (final Element dependencyElement : dependencies) {
-			requiredDependencies.add(new Dependency(dependencyElement));
-		}
-
-		// update the POM the new configuration
-		projectOperations.removeDependencies(currentPom.getModuleName(), requiredDependencies);
-		projectOperations.addDependencies(currentPom.getModuleName(), requiredDependencies);
+		// update the dependencies in the POM, based on configuration
+		replaceDependencies(REMOTE_CONFIGURATION_BASE_PATH + "/dependencies/dependency", configuration, moduleName);
 
 		// Identify the properties
-		final List<Element> pomProperties = XmlUtils.findElements(CONFIGURATION_BASE_PATH + "/properties/*", configuration);
-		for (final Element property : pomProperties) {
-			projectOperations.addProperty(currentPom.getModuleName(), new Property(property));
-		}
+		addPropertiesToProjectOp(REMOTE_CONFIGURATION_BASE_PATH + "/properties/*", configuration, moduleName);
+	}
+	
+	
+	@Override
+	public boolean isSetupDeployLocalAvailable() {
+		return true;
+	}
+	
+	@Override
+	public void setupDeployLocal(String account, String userName, String password) {
+		LOGGER.info("deploy " + projectOperations.getFocusedModule().getPath());
 
+		// read the configuration file from the current CLASSPATH
+		Element configuration = XmlUtils.getConfiguration(getClass());
+
+		String moduleName = projectOperations.getFocusedModule().getModuleName();
+		
+		// update the plugins in the POM, based on configuration
+		replacePlugins(LOCAL_CONFIGURATION_PLUGIN_PATH, configuration, moduleName);
+
+		// update the dependencies in the POM, based on configuration
+		replaceDependencies(LOCAL_CONFIGURATION_BASE_PATH + "/dependencies/dependency", configuration, moduleName);
+
+		// Identify the properties
+		addPropertiesToProjectOp(LOCAL_CONFIGURATION_PROPERTIES_PATH, configuration, moduleName);
 	}
 
 	// /////////////////////////////////////////
@@ -91,6 +98,58 @@ public class DeployOperationsImpl implements DeployOperations {
 	private Pom getCurrentPOM() {
 		return projectOperations.getFocusedModule();
 	}
+	
+	//generate the required plugin list base on configuration file
+	private List<Plugin> generateRequiredPlugins(String pluginPath, Element configuration){
+		final List<Plugin> requiredPlugins = new ArrayList<Plugin>();
+		
+		final List<Element> buildPlugins = XmlUtils.findElements(pluginPath, configuration);
+		for (final Element pluginElement : buildPlugins) {
+			requiredPlugins.add(new Plugin(pluginElement));
+		}
+		
+		return requiredPlugins;
+	}
+	
+	//replace plugins in POM
+	private void replacePlugins(String pluginPath, Element configuration, String moduleName){
+		//get the plugins required for this configuration
+		final List<Plugin> requiredPlugins = generateRequiredPlugins(pluginPath, configuration);
+		
+		//projectOperations.removeBuildPlugins(moduleName, requiredPlugins);
+		projectOperations.addBuildPlugins(moduleName, requiredPlugins);
+	}
+	
+	//generate dependency list based on this configuration
+	private List<Dependency> generateDependencies(String dependencyPath, Element configuration){
+		final List<Dependency> requiredDependencies = new ArrayList<Dependency>();
+		
+		final List<Element> dependencies = XmlUtils.findElements(dependencyPath, configuration);
+		for (final Element dependencyElement : dependencies) {
+			requiredDependencies.add(new Dependency(dependencyElement));
+		}
+		
+		return requiredDependencies;
+	}
+	
+	//replace dependencies in POM
+	private void replaceDependencies(String dependencyPath, Element configuration, String moduleName){			
+		//get the dependencies required for this configuration
+		final List<Dependency> requiredDependencies = generateDependencies(dependencyPath, configuration);
+		
+		//projectOperations.removeDependencies(moduleName, requiredDependencies);
+		projectOperations.addDependencies(moduleName, requiredDependencies);
+	}
+	
+	//add Properties To Project Operations
+	private void addPropertiesToProjectOp(String pomPropertiesPath, Element configuration, String moduleName){
+		final List<Element> pomProperties = XmlUtils.findElements(pomPropertiesPath, configuration);
+		for (final Element property : pomProperties) {
+			projectOperations.addProperty(moduleName, new Property(property));
+		}
+	}
+	
+	
 
 	/**
 	 * remove plug-in entry from the POM Document
