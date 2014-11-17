@@ -130,3 +130,25 @@ field list --fieldName employees --type ~.persistence.EUser --cardinality ONE_TO
 field list --fieldName orders --type ~.persistence.EOrder --cardinality ONE_TO_MANY --mappedBy _user --fetch EAGER
 field list --fieldName userPoints --type ~.persistence.UserPoints --cardinality ONE_TO_MANY --mappedBy _user --fetch EAGER
 field list --fieldName campaigns --type ~.persistence.Campaign --cardinality ONE_TO_MANY --mappedBy owner --fetch EAGER
+
+// **************************************
+// 			DB QUERIES
+// **************************************
+finder add --finderName findEUsersByUserIdEquals
+finder add --finderName findEUsersByEmailEquals
+finder add --finderName findCampaignsByNameLike
+finder add --finderName findCampaignsByActiveNot
+finder add --finderName findEOrdersBy_userAndCampaign
+finder add --finderName findEOrdersByUserIdEquals
+finder add --finderName findUserPointsesBy_userAndCampaign
+finder add --finderName findUserPointsesByUserIdAndCampaign
+
+// **************************************
+// 			BENEFIT_INFO DAO
+// **************************************
+finder add --finderName findBenefitInfoesByNameEquals
+
+// **************************************
+// 			BENEFIT_ORDER_DETAILS DAO
+// **************************************
+finder add --finderName findEOrdersByOrderDetails
