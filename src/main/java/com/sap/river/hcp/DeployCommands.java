@@ -1,5 +1,7 @@
 package com.sap.river.hcp;
 
+import java.util.logging.Logger;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
@@ -57,12 +59,12 @@ public class DeployCommands implements CommandMarker {
      *
      * You can define multiple methods annotated with {@link CliAvailabilityIndicator} if your commands have differing
      * visibility requirements.
-     * 
+     *
      * @return true (default) if the command should be visible at this stage, false otherwise
      */
-	@CliAvailabilityIndicator("hcp setup deploy")
-	boolean isSetupDeployAvailable() {
-		return operations.isSetupDeployAvailable();
+	@CliAvailabilityIndicator("hcp setup remote-deploy")
+	public boolean isSetupDeployRemoteAvailable() {
+		return operations.isSetupDeployRemoteAvailable();
 	}
 	
 	/**
@@ -70,14 +72,26 @@ public class DeployCommands implements CommandMarker {
      *
      * You can define multiple methods annotated with {@link CliAvailabilityIndicator} if your commands have differing
      * visibility requirements.
-     * 
+     *
      * @return true (default) if the command should be visible at this stage, false otherwise
      */
-	@CliAvailabilityIndicator("hcp deploy")
-	boolean isDeployAvailable() {
-		return operations.isDeployAvailable();
+	@CliAvailabilityIndicator("hcp remote-deploy")
+	public boolean isDeployRemoteAvailable() {		
+		return operations.isDeployRemoteAvailable();
 	}
 	
+    /**
+    * This method is optional. It allows automatic command hiding in situations when the command should not be visible.
+    *
+    * You can define multiple methods annotated with {@link CliAvailabilityIndicator} if your commands have differing visibility
+    * requirements.
+    * 
+     * @return true (default) if the command should be visible at this stage, false otherwise
+    */
+    @CliAvailabilityIndicator("hcp setup local-deploy")
+    public boolean isSetupDeployLocalAvailable() {
+		return operations.isSetupDeployLocalAvailable();
+    }	
 	
 	/**
      * Configure the maven setup needed for activating deploy to HCP
@@ -86,12 +100,13 @@ public class DeployCommands implements CommandMarker {
      * @param userName - Your SCN login name which serves as your user name on your HCP account
      * @param password - Your SCN login password which serves as your password to your HCP account
      */
-    @CliCommand(value = "hcp setup deploy", help = "setup the configuration for deployment of web application to HANA Cloud Platform")
-    public void setupDeploy(
-    		@CliOption(key = "account", help = "The id of the account on HANA cloud platform") final String account,
-    		@CliOption(key = "user", help = "The user name to log into the account") final String userName,
-    		@CliOption(key = "password", help = "The login password of the user") final String password) {
-    	operations.setupDeploy(account, userName, password);
+    @CliCommand(value = "hcp setup remote-deploy", help = "setup the configuration for deployment of web application to HANA Cloud Platform")
+    public void setupDeployRemote(
+    		@CliOption(key = "host", mandatory = false, help = "The host of the HANA cloud platform") final String host,
+    		@CliOption(key = "account", mandatory = false, help = "The id of the account on HANA cloud platform") final String account,
+    		@CliOption(key = "user", mandatory = false, help = "The user name to log into the account") final String userName,
+    		@CliOption(key = "password", mandatory = false, help = "The login password of the user") final String password) {
+    	operations.setupDeployRemote(host, account, userName, password);
     }
     
     /**
@@ -102,12 +117,25 @@ public class DeployCommands implements CommandMarker {
      * @param userName - Your SCN login name which serves as your user name on your HCP account
      * @param password - Your SCN login password which serves as your password to your HCP account
      */
-    @CliCommand(value = "hcp deploy", help = "Deploy the web application to HANA Cloud Platform")
-    public void deployCommand(
+    @CliCommand(value = "hcp remote-deploy", help = "Deploy the web application to HANA Cloud Platform")
+    public void deployRemoteCommand(
     		@CliOption(key = "goal", unspecifiedDefaultValue = "deploy", help = "goal for the neo web plugin") final String command,
+    		@CliOption(key = "host", help = "The host of the HANA cloud platform") final String host,
     		@CliOption(key = "account", help = "The id of the account on HANA cloud platform") final String account,
     		@CliOption(key = "user", help = "The user name to log into the account") final String userName,
     		@CliOption(key = "password", help = "The login password of the user") final String password) {
-    	operations.deployCommand(command, account, userName, password);
+    	operations.deployRemoteCommand(command, host, account, userName, password);
     }
+    
+    /**
+     * 
+     * @param root - the root of the server on localhost
+     */
+    @CliCommand(value = "hcp setup local-deploy", help = "setup the configuration for local deployment of an HCP server")
+    public void setupDeployLocal(
+            @CliOption(key = "root", mandatory = false, help = "The file system root") final String root) {
+    	operations.setupDeployLocal(root);
+    }
+    
+    
 }

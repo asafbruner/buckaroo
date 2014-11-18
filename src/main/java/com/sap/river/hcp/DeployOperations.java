@@ -17,31 +17,47 @@ public interface DeployOperations {
 	 * 
 	 * @return true if the conditions for enabling deploy command are met
 	 */
-	boolean isSetupDeployAvailable();
+	boolean isSetupDeployRemoteAvailable();
 	
 	/**
 	 * deploy command is available when a war file is available under the target directory
 	 * 
 	 * @return true if the conditions for enabling deploy command are met
 	 */
-	boolean isDeployAvailable();
+	boolean isDeployRemoteAvailable();
+	
+    /**
+     * 
+     * @return true/false, depending on whether or not setup for deploy is available
+     */
+    boolean isSetupDeployLocalAvailable();
 	
 	/**
 	 * Configure the maven setup needed for activating deploy to HCP
 	 * 
-     * @param accountName - The id of your HCP account 
+     * @param host - The host of the HCP
+     * @param account - The id of your HCP account 
      * @param userName - Your SCN login name which serves as your user name on your HCP account
      * @param password - Your SCN login password which serves as your password to your HCP account
 	 */
-	void setupDeploy(final String account, final String userName, final String password);
+	void setupDeployRemote(final String host, final String account, final String userName, final String password);
 	
 	/**
      * Activate deploy of project's output to HCP
      * 
      * @param command - goal for the neo web plugin
-     * @param accountName - The id of your HCP account 
+     * @param host - The id of the HCP
+     * @param account - The id of your HCP account 
      * @param userName - Your SCN login name which serves as your user name on your HCP account
      * @param password - Your SCN login password which serves as your password to your HCP account
      */
-	void deployCommand(final String command, final String account, final String userName, final String password);
+	void deployRemoteCommand(final String command, final String host, final String account, final String userName, final String password);
+
+    /**
+     * do the setup
+     * @param account
+     * @param userName
+     * @param password
+     */
+    void setupDeployLocal(String root);
 }
