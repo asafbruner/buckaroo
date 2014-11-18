@@ -25,6 +25,57 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_ed1ffe07",
+        "filename": "src/main/java/com/sap/river/hcp/DeployCommands.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002914
+      },
+      "writtenOn": "2014-11-18T13:17:08Z",
+      "side": 1,
+      "message": "why is package visibility not enough?",
+      "revId": "66a37e2b1947b1bf800cc34b108be3726ed31fa1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_8d2bd22f",
+        "filename": "src/main/java/com/sap/river/hcp/DeployCommands.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1002914
+      },
+      "writtenOn": "2014-11-18T13:17:08Z",
+      "side": 1,
+      "message": "please provide a default value for this parameter",
+      "revId": "66a37e2b1947b1bf800cc34b108be3726ed31fa1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_2d1aa617",
+        "filename": "src/main/java/com/sap/river/hcp/DeployCommands.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1002914
+      },
+      "writtenOn": "2014-11-18T13:17:08Z",
+      "side": 1,
+      "message": "can you discover the path from the roo PathProvider utils?, as we use to locate configuration files",
+      "revId": "66a37e2b1947b1bf800cc34b108be3726ed31fa1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_f21cfdc3",
         "filename": "src/main/java/com/sap/river/hcp/DeployOperations.java",
         "patchSetId": 1
@@ -94,6 +145,23 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_4dd8ca53",
+        "filename": "src/main/java/com/sap/river/hcp/DeployOperationsImpl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002914
+      },
+      "writtenOn": "2014-11-18T13:17:08Z",
+      "side": 1,
+      "message": "The logs are redundant and can be removed",
+      "revId": "66a37e2b1947b1bf800cc34b108be3726ed31fa1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_b221d5b6",
         "filename": "src/main/java/com/sap/river/hcp/DeployOperationsImpl.java",
         "patchSetId": 1
@@ -140,6 +208,23 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_adddf644",
+        "filename": "src/main/java/com/sap/river/hcp/DeployOperationsImpl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1002914
+      },
+      "writtenOn": "2014-11-18T13:17:08Z",
+      "side": 1,
+      "message": "agree.",
+      "revId": "66a37e2b1947b1bf800cc34b108be3726ed31fa1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_2de74642",
         "filename": "src/main/java/com/sap/river/hcp/DeployOperationsImpl.java",
         "patchSetId": 1
@@ -174,6 +259,23 @@
         "endLine": 194,
         "endChar": 33
       },
+      "revId": "66a37e2b1947b1bf800cc34b108be3726ed31fa1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_ede6de15",
+        "filename": "src/main/java/com/sap/river/hcp/DeployOperationsImpl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 240,
+      "author": {
+        "id": 1002914
+      },
+      "writtenOn": "2014-11-18T13:17:08Z",
+      "side": 1,
+      "message": "this commented part can be removed now. since Vered and I are writing the logic differently",
       "revId": "66a37e2b1947b1bf800cc34b108be3726ed31fa1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
