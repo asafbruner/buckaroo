@@ -1,8 +1,6 @@
 package com.sap.river.hcp;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang3.StringUtils;
@@ -10,190 +8,132 @@ import org.apache.commons.lang3.Validate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.springframework.roo.project.Dependency;
 import org.springframework.roo.project.MavenOperations;
-import org.springframework.roo.project.Plugin;
 import org.springframework.roo.project.ProjectOperations;
-import org.springframework.roo.project.Property;
 import org.springframework.roo.project.maven.Pom;
 import org.springframework.roo.support.util.XmlUtils;
 import org.w3c.dom.Element;
 
+import com.sap.river.util.PomUtils;
+import com.sap.river.util.PropertiesUtils;
+
 @Component
 @Service
 public class DeployOperationsImpl implements DeployOperations {
-	
-	private static Logger LOGGER = Logger.getLogger(DeployOperationsImpl.class.getName());
-	
+
+	private static Logger LOGGER = Logger.getLogger(DeployOperationsImpl.class
+			.getName());
+
+	private final String SAP_CLOUD_HOST_PROP = "sap.cloud.host";
 	private final String SAP_CLOUD_ACCOUNT_PROP = "sap.cloud.account";
 	private final String SAP_CLOUD_USERNAME_PROP = "sap.cloud.username";
 	private final String SAP_CLOUD_PASSWORD_PROP = "sap.cloud.password";
-	private final String CONFIGURATION_BASE_PATH = "/configuration/river/deploy";
+	private final String SAP_LOCAL_SERVER_ROOT = "local.server.root";
 	
-	/**river specific details in the project seup files (such as pom.xml etc.) */	
-	@Reference private ProjectOperations projectOperations;
-	@Reference private MavenOperations mavenOperations;
+	private final String REMOTE_CONFIGURATION_BASE_PATH = "/configuration/river/deploy";
 	
-	//@Reference private FileManager fileManager;
-	//@Reference private PathResolver pathResolver;
+	private final String LOCAL_CONFIGURATION_BASE_PATH = "/configuration/river/deploy-local";
+	private final String LOCAL_CONFIGURATION_PLUGIN_PATH = LOCAL_CONFIGURATION_BASE_PATH + "/build/plugins/plugin";
+	private final String LOCAL_CONFIGURATION_PROPERTIES_PATH = LOCAL_CONFIGURATION_BASE_PATH + "/properties/*";
 	
-	///////////////////////////////////////////
+	private final String DEPENDENCY_SUBPATH = "/dependencies/dependency";
+	private final String PLUGIN_SUBPATH = "/build/plugins/plugin";
+	private final String PROPERTIES_SUBPATH = "/properties/*";
+
+	/** river specific details in the project setup files (such as pom.xml etc.) */
+	@Reference
+	private ProjectOperations projectOperations;
+	@Reference
+	private MavenOperations mavenOperations;
+
+	// /////////////////////////////////////////
 	// API
 	///////////////////////////////////////////
 
 	@Override
-	public boolean isSetupDeployAvailable() {
-		//TODO: check if the war exists under target(?) directory
+	public boolean isSetupDeployRemoteAvailable() {	
+		return true;
+	}
+	
+	@Override
+	//return true/false, depending on whether or not the .war file exists
+	public boolean isDeployRemoteAvailable() {			
+		return true;
+	}
+	
+	@Override
+	public boolean isSetupDeployLocalAvailable() {
 		return true;
 	}
 
 	@Override
-	public void setupDeploy(final String account, final String userName, final String password) {
-		Pom currentPom = getCurrentPOM();
-		LOGGER.info("deploy "+ currentPom.getPath());
-		
-		//read the configuration file from the current CLASSPATH
+	public void setupDeployRemote(final String host, final String account, final String userName,
+			final String password) {
+		Pom currentPom = PomUtils.getCurrentPOM(projectOperations);
+
+		// read the configuration file from the current CLASSPATH
 		Element configuration = XmlUtils.getConfiguration(getClass());
 		
-		// Identify the required plugins
-        final List<Plugin> requiredPlugins = new ArrayList<Plugin>();
-		
-		final List<Element> buildPlugins = XmlUtils.findElements(CONFIGURATION_BASE_PATH + "/build/plugins/plugin", configuration);
-        for (final Element pluginElement : buildPlugins) {
-            requiredPlugins.add(new Plugin(pluginElement));
-        }
+		String moduleName = currentPom.getModuleName();
+
+        // update the plugins in the POM, based on configuration
+		PomUtils.addPlugins(projectOperations, REMOTE_CONFIGURATION_BASE_PATH + PLUGIN_SUBPATH, configuration, moduleName);
+
+        // update the dependencies in the POM, based on configuration
+		PomUtils.addDependencies(projectOperations, REMOTE_CONFIGURATION_BASE_PATH + DEPENDENCY_SUBPATH, configuration, moduleName);
         
-        //update the POM the new configuration
-        projectOperations.removeBuildPlugins(currentPom.getModuleName(), requiredPlugins); //TODO: needed?
-        projectOperations.addBuildPlugins(currentPom.getModuleName(), requiredPlugins);
-        
-        //Identify the dependencies
-        final List<Dependency> requiredDependencies = new ArrayList<Dependency>();
-        
-        final List<Element> dependencies = XmlUtils.findElements(CONFIGURATION_BASE_PATH + "/dependencies/dependency", configuration);
-        for (final Element dependencyElement : dependencies) {
-            requiredDependencies.add(new Dependency(dependencyElement));
-        }
-        
-        //update the POM the new configuration
-        projectOperations.removeDependencies(currentPom.getModuleName(), requiredDependencies);
-        projectOperations.addDependencies(currentPom.getModuleName(), requiredDependencies);
-        
-        //Identify the fixed properties
-        final List<Element> pomProperties = XmlUtils.findElements(CONFIGURATION_BASE_PATH + "/properties/*", configuration);
-        for (final Element property : pomProperties) {
-            projectOperations.addProperty(currentPom.getModuleName(), new Property(property));
-        }
-        
-        //if optd, create custom properties for them
-        updateInputProperties(currentPom.getModuleName(), account, userName, password);
-        
+        // add properties to project operation
+        PropertiesUtils.addPropertiesToProjectOp(projectOperations, REMOTE_CONFIGURATION_BASE_PATH + "PROPERTIES_SUBPATH", configuration, moduleName);
+
+        // if optd, create custom properties for them
+        PropertiesUtils.updateInputRemoteProperties(projectOperations, moduleName, host, account, userName, password, SAP_CLOUD_HOST_PROP, SAP_CLOUD_ACCOUNT_PROP, 
+        		SAP_CLOUD_USERNAME_PROP, SAP_CLOUD_PASSWORD_PROP);
+
 	}
 
-	@Override
-	public boolean isDeployAvailable() {
-		//TODO: implement context-aware logic
-		return true;
-	}
 
 	@Override
-	public void deployCommand(String command, String account, String userName,
-			String password) {
+	public void deployRemoteCommand(String command, String host, String account,
+			String userName, String password) {		
 		Validate.notNull(command, "Plugin command required");
 		StringBuffer sb = (new StringBuffer("neo-java-web:")).append(command);
+		if (!StringUtils.isBlank(host)) {
+			sb.append(" -D").append(SAP_CLOUD_HOST_PROP).append("=").append(host);
+		} 
 		if (!StringUtils.isBlank(account)) {
 			sb.append(" -D").append(SAP_CLOUD_ACCOUNT_PROP).append("=").append(account);
-        }
-        if (!StringUtils.isBlank(userName)) {
-        	sb.append(" -D").append(SAP_CLOUD_USERNAME_PROP).append("=").append(userName);
-        }
-        if (!StringUtils.isBlank(password)) {
-        	sb.append(" -D").append(SAP_CLOUD_PASSWORD_PROP).append("=").append(password);
-        }
-		try {
+		}
+		if (!StringUtils.isBlank(userName)) {
+			sb.append(" -D").append(SAP_CLOUD_USERNAME_PROP).append("=").append(userName);
+		}
+		if (!StringUtils.isBlank(password)) {
+			sb.append(" -D").append(SAP_CLOUD_PASSWORD_PROP).append("=").append(password);
+		}
+		try {			
 			mavenOperations.executeMvnCommand(sb.toString());
 		} catch (IOException ioe) {
 			throw new IllegalStateException(ioe);
 		}
 	}
 
-	///////////////////////////////////////////
-	//Auxiliary Functions
-	///////////////////////////////////////////
-	/**
-	 * @return - POM object of the current project or the root project if no other projects are in focus
-	 */
-	private Pom getCurrentPOM() {
-		return projectOperations.getFocusedModule();
+	@Override
+	public void setupDeployLocal(String root) {
+		// read the configuration file from the current CLASSPATH
+		Element configuration = XmlUtils.getConfiguration(getClass());
+
+		String moduleName = projectOperations.getFocusedModule().getModuleName();
+
+		// update the plugins in the POM, based on configuration
+		PomUtils.addPlugins(projectOperations, LOCAL_CONFIGURATION_PLUGIN_PATH, configuration, moduleName);
+
+		// update the dependencies in the POM, based on configuration
+		PomUtils.addDependencies(projectOperations, LOCAL_CONFIGURATION_BASE_PATH + DEPENDENCY_SUBPATH, configuration, moduleName);
+
+		// add properties to project operation
+		PropertiesUtils.addPropertiesToProjectOp(projectOperations, LOCAL_CONFIGURATION_PROPERTIES_PATH, configuration, moduleName);
+		
+		// if optd, create custom properties for them
+		PropertiesUtils.updateInputLocalProperties(projectOperations, moduleName, root, SAP_LOCAL_SERVER_ROOT);
 	}
-	
-	/** remove plug-in entry from the POM Document */
-	private void updateInputProperties(final String moduleName, final String account, final String userName, final String password) {
-		if (!StringUtils.isBlank(account)) {
-        	projectOperations.addProperty(moduleName, new Property(SAP_CLOUD_ACCOUNT_PROP, account));
-        }
-        if (!StringUtils.isBlank(userName)) {
-        	projectOperations.addProperty(moduleName, new Property(SAP_CLOUD_USERNAME_PROP, userName));
-        }
-        if (!StringUtils.isBlank(password)) {
-        	projectOperations.addProperty(moduleName, new Property(SAP_CLOUD_PASSWORD_PROP, password));
-        }
-	}
-	
-	/** remove plug-in entry from the POM Document
-	/**
-	 * remove plug-in entry from the POM Document
-	 * @param buildPlugin - the entry to remove
-	 */
-//	private void removeBuildPlugin(Pom pom, Plugin buildPlugin) {
-//		//remove the input plugin entry from the pom.xml Document
-//		Document document = XmlUtils.readXml(fileManager.getInputStream(pom.getPath()));
-//		Element root = document.getDocumentElement();
-//		Element pluginsElement = XmlUtils.findFirstElement(PROJECT_BUILD_PLUGIN_PATH, root);
-//		for (Element pluginXml : XmlUtils.findElements(PROJECT_BUILD_PLUGIN_PATH, root)) {
-//			Plugin candidate = new Plugin(pluginXml);
-//			if (arePluginsCompatible(buildPlugin, candidate)) {
-//				LOGGER.info("removing plugin "+ candidate.getGAV().toString() + " from pom.xml");
-//				pluginsElement.removeChild(pluginXml);
-//			}
-//		}
-//		DomUtils.removeTextNodes(pluginsElement);
-//		
-//		//update pom.xml file with the new content
-//		fileManager.createOrUpdateTextFileIfRequired(pom.getPath(), XmlUtils.nodeToString(document), true);
-//	}
-	
-	/**
-	 * add plug-in entry from the POM Document
-	 * @param buildPluginElement - the element entry to add
-	 */
-//	private void addBuildPluginElement(Pom pom, Element buildPluginElement) {
-//		//add the input plugin entry from the pom.xml Document
-//		Document document = XmlUtils.readXml(fileManager.getInputStream(pom.getPath()));
-//		Element root = document.getDocumentElement();
-//		Element pluginsElement = XmlUtils.findFirstElement(PROJECT_BUILD_PLUGINS_PATH, root);
-//		if (pluginsElement != null) {
-//			// Append the build plugin passed via parameter pluginXML to the build plugins element of POM
-//			Node plugin  = document.importNode(buildPluginElement, true);
-//			pluginsElement.appendChild(plugin);
-//			LOGGER.info("add build plugin ");
-//		}
-//		
-//		//update pom.xml file with the new content
-//		fileManager.createOrUpdateTextFileIfRequired(pom.getPath(), XmlUtils.nodeToString(document), true);
-//	}
-	
-//	private boolean arePluginsCompatible(Plugin src, Plugin other) {
-//		if (src == null || other == null) {
-//			return false;
-//		}
-//		
-//		int result = src.getGroupId().compareTo(other.getGroupId());
-//        if (result == 0) {
-//            result = src.getArtifactId().compareTo(other.getArtifactId());
-//        }
-//        
-//        return (result == 0);
-//	}
 
 }
