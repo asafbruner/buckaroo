@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_94ec76c9",
+        "filename": "src/main/java/com/sap/river/odata/olingo/ODataCommands.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-11-20T14:17:38Z",
+      "side": 1,
+      "message": "please remove this",
+      "range": {
+        "startLine": 75,
+        "startChar": 6,
+        "endLine": 75,
+        "endChar": 40
+      },
+      "revId": "db062af21d4397b702c5fde60c08376b91774669",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_34db0a1d",
+        "filename": "src/main/java/com/sap/river/odata/olingo/ODataOperationsImpl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-11-20T14:17:38Z",
+      "side": 1,
+      "message": "Please check what is the purpose of this code",
+      "range": {
+        "startLine": 164,
+        "startChar": 2,
+        "endLine": 164,
+        "endChar": 35
+      },
+      "revId": "db062af21d4397b702c5fde60c08376b91774669",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
