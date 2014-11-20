@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_54bfaed0",
+        "filename": "src/main/java/com/sap/river/hcp/DeployOperations.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-11-20T12:06:42Z",
+      "side": 1,
+      "message": "Is this the right comment?",
+      "range": {
+        "startLine": 64,
+        "startChar": 7,
+        "endLine": 64,
+        "endChar": 81
+      },
+      "revId": "41462aec986d70460c77422e698459643f3979e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_f4cd0288",
+        "filename": "src/main/java/com/sap/river/hcp/DeployOperationsImpl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-11-20T12:06:42Z",
+      "side": 1,
+      "message": "If the catch clauses are not different from on another we can use on the aggregates all of them.",
+      "revId": "41462aec986d70460c77422e698459643f3979e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
