@@ -15,7 +15,6 @@ import org.springframework.roo.support.util.XmlUtils;
 import org.w3c.dom.Element;
 
 import com.sap.river.util.PomUtils;
-import com.sap.river.util.PropertiesUtils;
 
 @Component
 @Service
@@ -39,6 +38,13 @@ public class DeployOperationsImpl implements DeployOperations {
 	private final String DEPENDENCY_SUBPATH = "/dependencies/dependency";
 	private final String PLUGIN_SUBPATH = "/build/plugins/plugin";
 	private final String PROPERTIES_SUBPATH = "/properties/*";
+	
+	private static final String POM_PROFILE_ID_VAL = "profile-install-hcp";
+	
+	private static final String NEO_PLUGIN_NAME = "neo-java-web";
+	private static final String NEO_PLUGIN_COMMAND_INSTALL_LOCAL = "install-local";
+	private static final String NEO_PLUGIN_DEPLOY_LOCAL = "deploy-local";
+	private static final String NEO_PLUGIN_START_LOCAL = "start-local";
 
 	/** river specific details in the project setup files (such as pom.xml etc.) */
 	@Reference
@@ -56,13 +62,19 @@ public class DeployOperationsImpl implements DeployOperations {
 	}
 	
 	@Override
-	//return true/false, depending on whether or not the .war file exists
+	//TODO, return true/false, depending on whether or not the .war file exists
 	public boolean isDeployRemoteAvailable() {			
 		return true;
 	}
 	
 	@Override
 	public boolean isSetupDeployLocalAvailable() {
+		return true;
+	}
+	
+	@Override
+	//TODO, return true/false, depending on whether or not the .war file exists
+	public boolean isDeployLocalAvailable() {
 		return true;
 	}
 
@@ -77,26 +89,25 @@ public class DeployOperationsImpl implements DeployOperations {
 		String moduleName = currentPom.getModuleName();
 
         // update the plugins in the POM, based on configuration
-		PomUtils.addPlugins(projectOperations, REMOTE_CONFIGURATION_BASE_PATH + PLUGIN_SUBPATH, configuration, moduleName);
+		PomUtils.addPluginsToProfile(projectOperations, REMOTE_CONFIGURATION_BASE_PATH + PLUGIN_SUBPATH, configuration, POM_PROFILE_ID_VAL);
 
         // update the dependencies in the POM, based on configuration
 		PomUtils.addDependencies(projectOperations, REMOTE_CONFIGURATION_BASE_PATH + DEPENDENCY_SUBPATH, configuration, moduleName);
         
         // add properties to project operation
-        PropertiesUtils.addPropertiesToProjectOp(projectOperations, REMOTE_CONFIGURATION_BASE_PATH + "PROPERTIES_SUBPATH", configuration, moduleName);
+		PomUtils.addPropertiesToProjectOp(projectOperations, REMOTE_CONFIGURATION_BASE_PATH + PROPERTIES_SUBPATH, configuration, moduleName);
 
         // if optd, create custom properties for them
-        PropertiesUtils.updateInputRemoteProperties(projectOperations, moduleName, host, account, userName, password, SAP_CLOUD_HOST_PROP, SAP_CLOUD_ACCOUNT_PROP, 
+        PomUtils.updateInputRemoteProperties(projectOperations, moduleName, host, account, userName, password, SAP_CLOUD_HOST_PROP, SAP_CLOUD_ACCOUNT_PROP, 
         		SAP_CLOUD_USERNAME_PROP, SAP_CLOUD_PASSWORD_PROP);
-
+        
 	}
-
 
 	@Override
 	public void deployRemoteCommand(String command, String host, String account,
 			String userName, String password) {		
 		Validate.notNull(command, "Plugin command required");
-		StringBuffer sb = (new StringBuffer("neo-java-web:")).append(command);
+		StringBuffer sb = (new StringBuffer(NEO_PLUGIN_NAME)).append(":").append(command);
 		if (!StringUtils.isBlank(host)) {
 			sb.append(" -D").append(SAP_CLOUD_HOST_PROP).append("=").append(host);
 		} 
@@ -109,6 +120,7 @@ public class DeployOperationsImpl implements DeployOperations {
 		if (!StringUtils.isBlank(password)) {
 			sb.append(" -D").append(SAP_CLOUD_PASSWORD_PROP).append("=").append(password);
 		}
+		sb.append(" -P " + POM_PROFILE_ID_VAL);
 		try {			
 			mavenOperations.executeMvnCommand(sb.toString());
 		} catch (IOException ioe) {
@@ -124,16 +136,43 @@ public class DeployOperationsImpl implements DeployOperations {
 		String moduleName = projectOperations.getFocusedModule().getModuleName();
 
 		// update the plugins in the POM, based on configuration
-		PomUtils.addPlugins(projectOperations, LOCAL_CONFIGURATION_PLUGIN_PATH, configuration, moduleName);
+		PomUtils.addPluginsToProfile(projectOperations, LOCAL_CONFIGURATION_PLUGIN_PATH, configuration, POM_PROFILE_ID_VAL);
 
 		// update the dependencies in the POM, based on configuration
 		PomUtils.addDependencies(projectOperations, LOCAL_CONFIGURATION_BASE_PATH + DEPENDENCY_SUBPATH, configuration, moduleName);
 
 		// add properties to project operation
-		PropertiesUtils.addPropertiesToProjectOp(projectOperations, LOCAL_CONFIGURATION_PROPERTIES_PATH, configuration, moduleName);
+		PomUtils.addPropertiesToProjectOp(projectOperations, LOCAL_CONFIGURATION_PROPERTIES_PATH, configuration, moduleName);
 		
 		// if optd, create custom properties for them
-		PropertiesUtils.updateInputLocalProperties(projectOperations, moduleName, root, SAP_LOCAL_SERVER_ROOT);
+		PomUtils.updateInputLocalProperties(projectOperations, moduleName, root, SAP_LOCAL_SERVER_ROOT);
+	}
+	
+	@Override
+	public void deployLocalCommand() {		
+		//install
+		StringBuffer sb = (new StringBuffer(NEO_PLUGIN_NAME)).append(":").append(NEO_PLUGIN_COMMAND_INSTALL_LOCAL).append(" -P " + POM_PROFILE_ID_VAL);
+		try {			
+			mavenOperations.executeMvnCommand(sb.toString());
+		} catch (IOException ioe) {
+			throw new IllegalStateException(ioe);
+		}
+		
+		//deploy
+		sb = (new StringBuffer(NEO_PLUGIN_NAME)).append(":").append(NEO_PLUGIN_DEPLOY_LOCAL).append(" -P " + POM_PROFILE_ID_VAL);
+		try {			
+			mavenOperations.executeMvnCommand(sb.toString());
+		} catch (IOException ioe) {
+			throw new IllegalStateException(ioe);
+		}
+		
+		//start
+		sb = (new StringBuffer(NEO_PLUGIN_NAME)).append(":").append(NEO_PLUGIN_START_LOCAL).append(" -P " + POM_PROFILE_ID_VAL);
+		try {			
+			mavenOperations.executeMvnCommand(sb.toString());
+		} catch (IOException ioe) {
+			throw new IllegalStateException(ioe);
+		}
 	}
 
 }

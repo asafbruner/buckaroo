@@ -33,7 +33,14 @@ public interface DeployOperations {
 	public boolean isSetupDeployLocalAvailable();
 	
 	/**
-	 * Configure the maven setup needed for activating deploy to HCP
+	 * deploy command is available when a war file is available under the target directory
+	 * 
+	 * @return true if the conditions for enabling deploy command are met
+	 */
+	public boolean isDeployLocalAvailable();
+	
+	/**
+	 * Configure the maven setup in POM needed for activating deploy to HCP
 	 * 
      * @param host - The host of the HCP
      * @param account - The id of your HCP account 
@@ -54,8 +61,13 @@ public interface DeployOperations {
 	public void deployRemoteCommand(final String command, final String host, final String account, final String userName, final String password);
 
     /**
-     * do the setup
+     * Configure the maven setup in POM needed for activating deploy to local HCP
      * @param root
      */
 	public void setupDeployLocal(String root);
+	
+	/**
+	 * deploy locally
+	 */
+	public void deployLocalCommand();
 }

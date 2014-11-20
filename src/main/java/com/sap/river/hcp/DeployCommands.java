@@ -90,7 +90,20 @@ public class DeployCommands implements CommandMarker {
     @CliAvailabilityIndicator("hcp setup local-deploy")
     public boolean isSetupDeployLocalAvailable() {
 		return operations.isSetupDeployLocalAvailable();
-    }	
+    }
+    
+    /**
+     * This method is optional. It allows automatic command hiding in situations when the command should not be visible.
+     *
+     * You can define multiple methods annotated with {@link CliAvailabilityIndicator} if your commands have differing
+     * visibility requirements.
+     *
+     * @return true (default) if the command should be visible at this stage, false otherwise
+     */
+    @CliAvailabilityIndicator("hcp local-deploy")
+    public boolean isDeployLocalAvailable() {
+		return operations.isDeployLocalAvailable();
+    }
 	
 	/**
      * Configure the maven setup needed for activating deploy to HCP
@@ -134,6 +147,14 @@ public class DeployCommands implements CommandMarker {
     public void setupDeployLocal(
             @CliOption(key = "root", mandatory = false, help = "The file system root") final String root) {
     	operations.setupDeployLocal(root);
+    }
+    
+    /**
+     * Activate deploy of project's output to local server
+     */
+    @CliCommand(value = "hcp local-deploy", help = "Deploy the web application to local server")
+    public void deployLocalCommand() {
+    	operations.deployLocalCommand();
     }
     
     
