@@ -72,33 +72,9 @@ public class ODataCommands implements CommandMarker {
      */
     @CliCommand(value = "odata setup", help = "setup the configuration for embedding Olingo OData provider")
     public void setupOlingo(
-    		@CliOption(key = "service", mandatory=false, help = "The service name in the URI") final String serviceBasePath) {
-    	operations.setupOlingo();
+    		@CliOption(key = "service", mandatory=false, help = "The service name in the URI") final String serviceBasePath,
+    		@CliOption(key = "class", mandatory=true, help = "The name of the factory class") final JavaType factoryClassName) {
+    	operations.setupOlingo(factoryClassName, serviceBasePath);
     }
     
-    /**
-     * This method is optional. It allows automatic command hiding in situations when the command should not be visible.
-     *
-     * You can define multiple methods annotated with {@link CliAvailabilityIndicator} if your commands have differing
-     * visibility requirements.
-     * 
-     * @return true (default) if the command should be visible at this stage, false otherwise
-     */
-	@CliAvailabilityIndicator("odata jpa-factory")
-	boolean isSetupOlingoODataJPAAvailable() {
-		return operations.isSetupOlingoOdataJPAFactoryAvailable();
-	}
-	
-	/**
-     * Configure the JPA factory of the OData service
-     * 
-     * @param class - The name of the factory class
-     * @param serviceBasePath - The service name in the URI
-     */
-    @CliCommand(value = "odata jpa-factory", help = "Adds the OData JPA factory class")
-    public void setupODataJPAFactory(
-    		@CliOption(key = "class", mandatory=true, help = "The name of the factory class") final JavaType factoryClassName,
-    		@CliOption(key = "service", mandatory=false, help = "The service name in the URI") final String serviceBasePath) {
-    	operations.setupOlingoJPAFactory(factoryClassName, serviceBasePath);
-    }
 }
