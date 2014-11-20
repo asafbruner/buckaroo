@@ -22,19 +22,7 @@ public interface ODataOperations {
 	/**
 	 * 
 	 */
-	void setupOlingo();
-	
-	/**
-	 * 
-	 */
-	boolean isSetupOlingoOdataJPAFactoryAvailable();
-	
-	/**
-	 * 
-     * @param factoryClassName - The name of the JPA OData factory class
-     * @param serviceBasePath - The name of the service in the URI  
-	 */
-	void setupOlingoJPAFactory(final JavaType factoryClass, final String serviceBasePath);
+	void setupOlingo(final JavaType factoryClass, final String serviceBasePath);
 	
 	
 }

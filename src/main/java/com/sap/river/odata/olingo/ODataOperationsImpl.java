@@ -67,15 +67,12 @@ public class ODataOperationsImpl implements ODataOperations {
 		return true;
 	}
 
-	@Override
-	public boolean isSetupOlingoOdataJPAFactoryAvailable() {
-		return true;
-	}
 	
 	@Override
-	public void setupOlingo() {
+	public void setupOlingo(final JavaType factoryClass, final String serviceBasePath) {
 		updateProjectPom();
 		updateServletConfiguration();
+		setupOlingoJPAFactory(factoryClass);
 	}
 
 	
@@ -192,11 +189,9 @@ public class ODataOperationsImpl implements ODataOperations {
             projectOperations.addProperty(module, new Property(property));
         }
 	}
-
 	
 
-	@Override
-	public void setupOlingoJPAFactory(JavaType factoryClass, String serviceBasePath) {
+	public void setupOlingoJPAFactory(final JavaType factoryClass) {
 		updateApplicationContextConfig();
 		createServiceFactoryClass(factoryClass);
 	}
