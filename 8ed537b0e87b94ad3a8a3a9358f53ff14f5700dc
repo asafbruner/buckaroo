@@ -1,0 +1,314 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_0954ef52",
+        "filename": "src/main/java/com/sap/river/hcp/PersistenceCommands.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-11-20T09:04:24Z",
+      "side": 1,
+      "message": "Please fix the comment, should be about persistent not deploy",
+      "range": {
+        "startLine": 83,
+        "startChar": 7,
+        "endLine": 83,
+        "endChar": 68
+      },
+      "revId": "8ed537b0e87b94ad3a8a3a9358f53ff14f5700dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_494ef7c2",
+        "filename": "src/main/java/com/sap/river/hcp/PersistenceCommands.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-11-20T09:04:24Z",
+      "side": 1,
+      "message": "not relevant, please delete",
+      "range": {
+        "startLine": 85,
+        "startChar": 6,
+        "endLine": 87,
+        "endChar": 14
+      },
+      "revId": "8ed537b0e87b94ad3a8a3a9358f53ff14f5700dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_e9508b60",
+        "filename": "src/main/java/com/sap/river/hcp/PersistenceCommands.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-11-20T09:04:24Z",
+      "side": 1,
+      "message": "same as above",
+      "range": {
+        "startLine": 89,
+        "startChar": 92,
+        "endLine": 89,
+        "endChar": 102
+      },
+      "revId": "8ed537b0e87b94ad3a8a3a9358f53ff14f5700dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_69cc9b36",
+        "filename": "src/main/java/com/sap/river/hcp/PersistenceCommands.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-11-20T09:04:24Z",
+      "side": 1,
+      "message": "please delete this",
+      "range": {
+        "startLine": 100,
+        "startChar": 8,
+        "endLine": 100,
+        "endChar": 13
+      },
+      "revId": "8ed537b0e87b94ad3a8a3a9358f53ff14f5700dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_c9d147cf",
+        "filename": "src/main/java/com/sap/river/hcp/PersistenceCommands.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-11-20T09:04:24Z",
+      "side": 1,
+      "message": "please delete this",
+      "range": {
+        "startLine": 104,
+        "startChar": 15,
+        "endLine": 104,
+        "endChar": 24
+      },
+      "revId": "8ed537b0e87b94ad3a8a3a9358f53ff14f5700dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_29e2939f",
+        "filename": "src/main/java/com/sap/river/hcp/PersistenceOperations.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-11-20T09:04:24Z",
+      "side": 1,
+      "message": "please fix the comment",
+      "range": {
+        "startLine": 16,
+        "startChar": 5,
+        "endLine": 18,
+        "endChar": 54
+      },
+      "revId": "8ed537b0e87b94ad3a8a3a9358f53ff14f5700dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_69f3fb73",
+        "filename": "src/main/java/com/sap/river/hcp/PersistenceOperations.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-11-20T09:04:24Z",
+      "side": 1,
+      "message": "persistence",
+      "range": {
+        "startLine": 24,
+        "startChar": 65,
+        "endLine": 24,
+        "endChar": 71
+      },
+      "revId": "8ed537b0e87b94ad3a8a3a9358f53ff14f5700dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_c9e8277f",
+        "filename": "src/main/java/com/sap/river/hcp/PersistenceOperations.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-11-20T09:04:24Z",
+      "side": 1,
+      "message": "delete this",
+      "range": {
+        "startLine": 36,
+        "startChar": 9,
+        "endLine": 36,
+        "endChar": 17
+      },
+      "revId": "8ed537b0e87b94ad3a8a3a9358f53ff14f5700dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_a9ede38d",
+        "filename": "src/main/java/com/sap/river/hcp/PersistenceOperationsImpl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-11-20T09:04:24Z",
+      "side": 1,
+      "message": "In the future we need to allow the user to change the above values, please add a to do",
+      "revId": "8ed537b0e87b94ad3a8a3a9358f53ff14f5700dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_09022f3e",
+        "filename": "src/main/java/com/sap/river/hcp/PersistenceOperationsImpl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-11-20T09:04:24Z",
+      "side": 1,
+      "message": "where do you use this?",
+      "range": {
+        "startLine": 62,
+        "startChar": 54,
+        "endLine": 62,
+        "endChar": 56
+      },
+      "revId": "8ed537b0e87b94ad3a8a3a9358f53ff14f5700dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_49fc373f",
+        "filename": "src/main/java/com/sap/river/hcp/PersistenceOperationsImpl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-11-20T09:04:24Z",
+      "side": 1,
+      "message": "why is that empty?",
+      "range": {
+        "startLine": 69,
+        "startChar": 13,
+        "endLine": 69,
+        "endChar": 34
+      },
+      "revId": "8ed537b0e87b94ad3a8a3a9358f53ff14f5700dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_29f9f34d",
+        "filename": "src/main/java/com/sap/river/hcp/PersistenceOperationsImpl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-11-20T09:04:24Z",
+      "side": 1,
+      "message": "you have this above as a constant",
+      "range": {
+        "startLine": 78,
+        "startChar": 8,
+        "endLine": 78,
+        "endChar": 57
+      },
+      "revId": "8ed537b0e87b94ad3a8a3a9358f53ff14f5700dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_699adb15",
+        "filename": "src/main/java/com/sap/river/hcp/PersistenceOperationsImpl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-11-20T09:04:24Z",
+      "side": 1,
+      "message": "Can we add all this strings as constants?",
+      "revId": "8ed537b0e87b94ad3a8a3a9358f53ff14f5700dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_c99f8702",
+        "filename": "src/main/java/com/sap/river/hcp/PersistenceOperationsImpl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-11-20T09:04:24Z",
+      "side": 1,
+      "message": "we already have this code above",
+      "range": {
+        "startLine": 137,
+        "startChar": 0,
+        "endLine": 139,
+        "endChar": 77
+      },
+      "revId": "8ed537b0e87b94ad3a8a3a9358f53ff14f5700dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
