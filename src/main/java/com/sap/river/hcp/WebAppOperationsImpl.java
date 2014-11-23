@@ -1,8 +1,13 @@
 package com.sap.river.hcp;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.logging.Logger;
 
+import javax.print.DocFlavor.INPUT_STREAM;
+
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
@@ -25,6 +30,7 @@ public class WebAppOperationsImpl implements WebAppOperations {
 			.getName());
 
 	private static final String WEB_MVC_XML = "WEB-INF/spring/webmvc-config.xml";
+	private static final String VIEW_XML = "WEB-INF/views/views.xml";
 	/** river specific details in the project setup files (such as pom.xml etc.) */
 	@Reference
 	private ProjectOperations projectOperations;
@@ -79,9 +85,24 @@ replace the exsiting tag with this one:
 under this tag:
 <definition name="index" extends="default">
 replace the exsiting tag with this one:
+<put-attribute name="body" value="index.html" />
 */
 	private void setupViewsXml() 
 	{
+        final String viewsPath = pathResolver.getFocusedIdentifier(Path.SRC_MAIN_WEBAPP, VIEW_XML); 
+        final String old_value = "/WEB-INF/views/index.jspx";
+        final String new_value = "index.html";
+        InputStream is = fileManager.getInputStream(viewsPath);
+        
+        String allClassContent = "";
+        try {
+			allClassContent = IOUtils.toString(is);
+		} catch (IOException e) {
+			LOGGER.info("Could not read from input stream");
+			e.printStackTrace();
+		}
+        allClassContent = allClassContent.replaceAll(old_value, new_value);
+        fileManager.createOrUpdateTextFileIfRequired(viewsPath, allClassContent, true);
 	}
 
 	/**
