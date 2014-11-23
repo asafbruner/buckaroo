@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Buckaroo</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta charset="UTF-8">
+    <link type="text/css" rel="stylesheet" href="styles/style.css">
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <script id="sap-ui-bootstrap"
+            type="text/javascript"
+            src="https://sapui5.hana.ondemand.com/resources/sap-ui-core.js"
+            data-sap-ui-xx-bindingSyntax="complex"
+            data-sap-ui-theme="sap_bluecrystal"
+            data-sap-ui-libs="sap.ui.commons, sap.ui.table, sap.ui.layout">
+        //src="https://sapui5.hana.ondemand.com/resources/sap-ui-core.js"
+    </script>
+    <script>
+        sap.ui.localResources("i18n");
+        sap.ui.localResources("utils");
+        sap.ui.localResources("views");
+        sap.ui.localResources("Application");
+
+        jQuery.sap.require("Application");
+        new Application({ root:"content" });
+    </script>
+</head>
+    <body class="sapUiBody buckaroo" id="content">
+    </body>
+</html>
