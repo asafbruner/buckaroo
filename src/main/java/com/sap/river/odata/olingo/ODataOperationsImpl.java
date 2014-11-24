@@ -82,11 +82,6 @@ public class ODataOperationsImpl implements ODataOperations {
 		
 	protected void updateServletConfiguration() {
 		
-		//-------------------------------------------------------------------------------------------------------------//
-		//TODO - there is a general bug that if the tags already exists it doesn't really find them in the web.xml
-		//hence they are not removed and id causes duplicates in the second run.
-		//-------------------------------------------------------------------------------------------------------------//
-		
 		final String configPath = projectOperations.getPathResolver().
 				getFocusedIdentifier(Path.SRC_MAIN_WEBAPP, "WEB-INF\\web.xml");
 
@@ -99,7 +94,7 @@ public class ODataOperationsImpl implements ODataOperations {
 		
 		//Inject the context-param
 		Element configLocationContextParam = XmlUtils.findFirstElement(
-	                        "/context-param[param-name = 'contextConfigLocation']", webAppElement);
+	                        "/web-app/context-param[param-name = 'contextConfigLocation']", webAppElement);
 		if (configLocationContextParam != null) {
 			configLocationContextParam.getParentNode().removeChild(configLocationContextParam);
 		}
@@ -111,9 +106,9 @@ public class ODataOperationsImpl implements ODataOperations {
 		
 		//Inject the conext loader listener
 		Element contextLoaderListener = XmlUtils.findFirstElement(
-                "/listener[listener-class = 'org.springframework.web.context.ContextLoaderListener']", webXml);
+                "/web-app/listener[listener-class = 'org.springframework.web.context.ContextLoaderListener']", webXml);
 		if (contextLoaderListener != null) {
-			webXml.removeChild(contextLoaderListener);
+			contextLoaderListener.getParentNode().removeChild(contextLoaderListener);
 		}
 		
 		contextLoaderListener = XmlUtils.findFirstElement(CONFIGURATION_BASE_PATH + "/webConfig" +
@@ -123,9 +118,9 @@ public class ODataOperationsImpl implements ODataOperations {
 
 		//Inject the CXF servlet 
 		Element cxfServletConfig = XmlUtils.findFirstElement(
-                "/servlet[servlet-class = 'org.apache.cxf.transport.servlet.CXFServlet']", webXml);
+                "/web-app/servlet[servlet-class = 'org.apache.cxf.transport.servlet.CXFServlet']", webXml);
 		if (cxfServletConfig != null) {
-			webXml.removeChild(cxfServletConfig);
+			cxfServletConfig.getParentNode().removeChild(cxfServletConfig);
 		}
 		
 		cxfServletConfig = XmlUtils.findFirstElement(CONFIGURATION_BASE_PATH + "/webConfig" +
@@ -136,9 +131,9 @@ public class ODataOperationsImpl implements ODataOperations {
 		//Inject the CXF servlet mapping
 		//TODO - Need to remove CXFNonSpringJaxrsServlet - the name might not be unique...
 		Element cxfServletMappingConfig = XmlUtils.findFirstElement(
-                "/servlet-mapping[servlet-name = 'CXFServlet']", webXml);
+                "/web-app/servlet-mapping[servlet-name = 'CXFServlet']", webXml);
 		if (cxfServletMappingConfig != null) {
-			webXml.removeChild(cxfServletMappingConfig);
+			cxfServletMappingConfig.getParentNode().removeChild(cxfServletMappingConfig);
 		}
 		
 		cxfServletMappingConfig = XmlUtils.findFirstElement(CONFIGURATION_BASE_PATH + "/webConfig" +
@@ -150,12 +145,12 @@ public class ODataOperationsImpl implements ODataOperations {
 		Element cxfNonSpringServletConfig = XmlUtils.findFirstElement(
                 "/servlet[servlet-class = 'org.apache.cxf.jaxrs.servlet.CXFNonSpringJaxrsServlet']", webXml);
 		if (cxfNonSpringServletConfig != null) {
-			webXml.removeChild(cxfNonSpringServletConfig);
+			cxfNonSpringServletConfig.getParentNode().removeChild(cxfNonSpringServletConfig);
 		}
 		Element cxfNonSpringServletMappingConfig = XmlUtils.findFirstElement(
                 "/servlet-mapping[servlet-name = 'CXFNonSpringJaxrsServlet']", webXml);
 		if (cxfNonSpringServletMappingConfig != null) {
-			webXml.removeChild(cxfNonSpringServletMappingConfig);
+			cxfNonSpringServletMappingConfig.getParentNode().removeChild(cxfNonSpringServletMappingConfig);
 		}
 		
 		DomUtils.removeTextNodes(webXml);
@@ -176,11 +171,14 @@ public class ODataOperationsImpl implements ODataOperations {
         final List<Element> dependencies = XmlUtils.findElements(CONFIGURATION_BASE_PATH + "/dependencies/dependency", configuration);
         
         for (final Element dependencyElement : dependencies) {
-            requiredDependencies.add(new Dependency(dependencyElement));
+        	Dependency dependency = new Dependency(dependencyElement);
+        	//only if the dependency does not already exist
+        	if (!projectOperations.getFocusedModule().isDependencyRegistered(dependency)) { 
+        		requiredDependencies.add(new Dependency(dependencyElement));
+        	}
         }
         
         //update the POM the new configuration
-        projectOperations.removeDependencies(module, requiredDependencies);
         projectOperations.addDependencies(module, requiredDependencies);
         
         //Identify the fixed properties
@@ -231,7 +229,8 @@ public class ODataOperationsImpl implements ODataOperations {
 		Element configCXFImport = XmlUtils.findFirstElement(
 	                        "/beans/import[@resource = 'classpath:META-INF/cxf/cxf.xml']", appContextXml);
 		if (configCXFImport != null) {
-			appContextXml.removeChild(document.importNode(configCXFImport, true));
+			configCXFImport.getParentNode().removeChild(configCXFImport);
+			//appContextXml.removeChild(document.importNode(configCXFImport, true));
 		}
 		configCXFImport = XmlUtils.findFirstElement(CONFIGURATION_BASE_PATH + "/appContextConfig" +
                 "/imports/import[@resource = 'classpath:META-INF/cxf/cxf.xml']", configuration);
@@ -241,7 +240,8 @@ public class ODataOperationsImpl implements ODataOperations {
 		Element configCXFServletImport = XmlUtils.findFirstElement(
                 "/beans/import[@resource = 'classpath:META-INF/cxf/cxf-servlet.xml']", appContextXml);
 		if (configCXFServletImport != null) {
-			appContextXml.removeChild(document.importNode(configCXFServletImport, true));
+			configCXFServletImport.getParentNode().removeChild(configCXFServletImport);
+			//appContextXml.removeChild(document.importNode(configCXFServletImport, true));
 		}
 		configCXFServletImport = XmlUtils.findFirstElement(CONFIGURATION_BASE_PATH + "/appContextConfig" +
 		    "/imports/import[@resource = 'classpath:META-INF/cxf/cxf-servlet.xml']", configuration);
@@ -252,7 +252,8 @@ public class ODataOperationsImpl implements ODataOperations {
 		Element configODataService = XmlUtils.findFirstElement(
                 "/beans/*[local-name()='server' and @address='/odata.svc']", appContextXml);
 		if (configODataService != null) {
-			appContextXml.removeChild(document.importNode(configODataService, true));
+			configODataService.getParentNode().removeChild(configODataService);
+			//appContextXml.removeChild(document.importNode(configODataService, true));
 		}
 		configODataService = XmlUtils.findFirstElement(CONFIGURATION_BASE_PATH + "/appContextConfig" +
 		    "/serviceConfig/*", configuration);
