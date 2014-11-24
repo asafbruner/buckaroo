@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_bb81a24c",
+        "filename": "src/main/java/com/sap/river/hcp/WebAppOperationsImpl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002914
+      },
+      "writtenOn": "2014-11-24T22:06:17Z",
+      "side": 1,
+      "message": "taking all the path strings to a constants make the code less clear in my opinion. It has benefits only when the string repeats many times which is not the case here. previously you could understand what a function builds just by looking at the code.",
+      "revId": "0cecf0a87818513c7480e146d436d220b8b85260",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_fb920a9e",
+        "filename": "src/main/java/com/sap/river/hcp/WebAppOperationsImpl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002914
+      },
+      "writtenOn": "2014-11-24T22:06:17Z",
+      "side": 1,
+      "message": "more specific error message is better for supportability. for example: could not read WEB-INF/views.index etc.",
+      "revId": "0cecf0a87818513c7480e146d436d220b8b85260",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_1b96ee94",
+        "filename": "src/main/java/com/sap/river/hcp/WebAppOperationsImpl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002914
+      },
+      "writtenOn": "2014-11-24T22:06:17Z",
+      "side": 1,
+      "message": "no need to print the stack trace. just log it or propagate it",
+      "revId": "0cecf0a87818513c7480e146d436d220b8b85260",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_5b907695",
+        "filename": "src/main/java/com/sap/river/hcp/WebAppOperationsImpl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 1002914
+      },
+      "writtenOn": "2014-11-24T22:06:17Z",
+      "side": 1,
+      "message": "you can use findElements with Xpath search instead of the looping. It is more custom way to do what you are attempting here.",
+      "revId": "0cecf0a87818513c7480e146d436d220b8b85260",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_3b8db27c",
+        "filename": "src/main/java/com/sap/river/hcp/WebAppOperationsImpl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1002914
+      },
+      "writtenOn": "2014-11-24T22:06:17Z",
+      "side": 1,
+      "message": "please add this code to XMLUtil",
+      "revId": "0cecf0a87818513c7480e146d436d220b8b85260",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
