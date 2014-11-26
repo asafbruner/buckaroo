@@ -2,9 +2,11 @@ package com.sap.river.odata.olingo;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -19,6 +21,8 @@ import org.springframework.roo.classpath.TypeManagementService;
 import org.springframework.roo.classpath.TypeParsingService;
 import org.springframework.roo.classpath.details.ClassOrInterfaceTypeDetails;
 import org.springframework.roo.classpath.details.ClassOrInterfaceTypeDetailsBuilder;
+import org.springframework.roo.classpath.details.ImportMetadata;
+import org.springframework.roo.classpath.details.ImportMetadataBuilder;
 import org.springframework.roo.classpath.details.annotations.AnnotationMetadataBuilder;
 import org.springframework.roo.model.JavaType;
 import org.springframework.roo.process.manager.FileManager;
@@ -38,6 +42,7 @@ import org.springframework.roo.model.SpringJavaType;
 
 import com.sap.river.hcp.DeployCommands;
 import com.sap.river.util.ConfigurationUtil;
+import com.sap.river.util.FileUtil;
 
 @Component
 @Service
@@ -48,6 +53,7 @@ public class ODataOperationsImpl implements ODataOperations {
 	private final String CONFIGURATION_BASE_PATH = "/configuration/river/olingo";
 	private final String XML_NS_ODATA = "xmlns:odata";
 	private final String XSI_SCHEMA_LOCATION = "xsi:schemaLocation";
+	private final String SFSF_PROPERTIES_FILE = "sfsf-client.properties";
 	
 	/**river specific details in the project setup files (such as pom.xml etc.) */	
 	@Reference private ProjectOperations projectOperations;
@@ -315,6 +321,100 @@ public class ODataOperationsImpl implements ODataOperations {
         fileManager.createOrUpdateTextFileIfRequired(fileCanonicalPath,
                 newContents, true);
 	
+	}
+
+	private void createClientPropertiesFile(String serviceBasePath, String username, String password) {
+		
+		final String externalServicePropertiesPath = pathResolver
+				.getFocusedIdentifier(Path.SRC_MAIN_RESOURCES,
+						"META-INF\\spring\\" + SFSF_PROPERTIES_FILE);
+		final boolean externalServicePropertiesPathExists = fileManager
+				.exists(externalServicePropertiesPath);
+
+		if (!externalServicePropertiesPathExists) {
+			OutputStream outputStream = fileManager.createFile(
+					externalServicePropertiesPath).getOutputStream();
+			if (outputStream == null) {
+				LOGGER.info("Could not create client properties file on disk");
+			}
+		}
+		
+		//TODO this code replaces any already existed client properties file with the following.
+		//Should consider merging!
+		
+		StringBuilder propertiesContent = new StringBuilder();
+		
+		//Embed the service name
+		propertiesContent.append("sfsf-endpoint=").append(serviceBasePath).append("\n");
+		
+		//Embed the username & password
+		propertiesContent.append("username=").append(username).append("\n");
+		propertiesContent.append("password=").append(password).append("\n");
+		
+		fileManager.createOrUpdateTextFileIfRequired(externalServicePropertiesPath,
+                 propertiesContent.toString(), null, false);
+		
+	}
+	
+	private void createEdmFactoryClass() {
+		
+		
+		//Creating a class builder
+		JavaType EdmFactoryJT = new JavaType(projectOperations.getFocusedTopLevelPackage() + ".odata.EdmFactoryBean");
+		final String declaredByMetadataId = PhysicalTypeIdentifier
+				.createIdentifier(EdmFactoryJT,
+						pathResolver.getFocusedPath(Path.SRC_MAIN_JAVA));
+		final ClassOrInterfaceTypeDetailsBuilder cidBuilder = new ClassOrInterfaceTypeDetailsBuilder(
+				declaredByMetadataId, Modifier.PUBLIC, EdmFactoryJT,
+				PhysicalTypeCategory.CLASS);
+
+		//Adding imports
+		Collection<ImportMetadata> imports = new ArrayList<ImportMetadata>();
+		//TODO add imports doesn't work
+		//imports.add((new ImportMetadataBuilder("org.apache.olingo.odata2.api.edm.Edm")).build());
+		//imports.add((new ImportMetadataBuilder("org.springframework.beans.factory.FactoryBean")).build());
+		//imports.add((new ImportMetadataBuilder("org.springframework.beans.factory.annotation.Autowired")).build());
+		cidBuilder.add(imports);
+		
+		//TODO Add the interface it implements from  
+		//cidBuilder.addImplementsType();
+		
+		//TODO need to add the odataClient member
+		
+		//TODO need to add the rest of the method in this class
+		
+		final ClassOrInterfaceTypeDetails cid  = cidBuilder.build();
+		
+		String newContents = typeParsingService.getCompilationUnitContents(cid);
+		
+		//Adding the content of the class
+        final String fileCanonicalPath = typeLocationService.getPhysicalTypeCanonicalPath(cid.getDeclaredByMetadataId());
+        fileManager.createOrUpdateTextFileIfRequired(fileCanonicalPath,
+                newContents, true);
+	}
+	
+	@Override
+	public void setupExternalService(String serviceBasePath, String username,
+			String password) {
+		
+		// Create the properties file
+		// TODO name of the file should not be hardcoded !!!
+		createClientPropertiesFile(serviceBasePath, username, password);
+		
+		//Create EdmFactoryBean
+		//1. Create the class itself
+		//2. Add to target applicationContext.xml :
+			//<bean id="sfsfEDM" scope="prototype" class="<target app package>.odata.EdmFactoryBean" />
+		createEdmFactoryClass();
+       
+		//Create ODataClient (currently empty)
+			//1. Create the Java class
+			//2. Add to target applicationContext.xml :
+//					<bean id="odataClient" class="<target app package>.odata.ODataClient" >
+//						<property name="endpoint" value="${sfsf-endpoint}"/>
+//						<property name="authToken" value="${sfsf-basic_auth}"/>
+//					</bean>
+		
 	}
 
 }

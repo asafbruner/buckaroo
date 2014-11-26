@@ -23,6 +23,15 @@ public interface ODataOperations {
 	 * 
 	 */
 	void setupOlingo(final JavaType factoryClass, final String serviceBasePath);
+
+
+	/**
+	 * 
+	 * @param serviceBasePath - the URI of the external service
+	 * @param username
+	 * @param password
+	 */
+	void setupExternalService(String serviceBasePath, String username, String password);
 	
 	
 }
