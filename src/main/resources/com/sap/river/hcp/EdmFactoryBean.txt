@@ -1,0 +1,26 @@
+import org.apache.olingo.odata2.api.edm.Edm;
+import org.springframework.beans.factory.FactoryBean;
+import org.springframework.beans.factory.annotation.Autowired;
+
+public class EdmFactoryBean implements FactoryBean<Edm> {
+
+
+	@Autowired
+	private ODataClient odataClient;
+
+	@Override
+	public Edm getObject() throws Exception {
+		return odataClient.readEdm();
+	}
+
+	@Override
+	public Class<?> getObjectType() {
+		return Edm.class;
+	}
+
+	@Override
+	public boolean isSingleton() {
+		return false;
+	}
+
+}
