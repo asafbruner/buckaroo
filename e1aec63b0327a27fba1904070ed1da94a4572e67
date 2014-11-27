@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_51ddf26f",
+        "filename": "src/main/java/com/sap/river/cds/CDSCommands.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-11-27T17:17:29Z",
+      "side": 1,
+      "message": "Please correct the comments",
+      "range": {
+        "startLine": 20,
+        "startChar": 62,
+        "endLine": 20,
+        "endChar": 78
+      },
+      "revId": "e1aec63b0327a27fba1904070ed1da94a4572e67",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_31daee78",
+        "filename": "src/main/java/com/sap/river/cds/CDSCommands.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-11-27T17:17:29Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 21,
+        "startChar": 63,
+        "endLine": 21,
+        "endChar": 83
+      },
+      "revId": "e1aec63b0327a27fba1904070ed1da94a4572e67",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_91e75a40",
+        "filename": "src/main/java/com/sap/river/cds/CDSCommands.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-11-27T17:17:29Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 31,
+        "startChar": 27,
+        "endLine": 31,
+        "endChar": 43
+      },
+      "revId": "e1aec63b0327a27fba1904070ed1da94a4572e67",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_11424a10",
+        "filename": "src/main/java/com/sap/river/cds/CDSOperationsImpl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-11-27T17:17:29Z",
+      "side": 1,
+      "message": "Are we assuming that the user would like to add automatic tests? maybe we can ask him, or add this as a parameter option",
+      "range": {
+        "startLine": 30,
+        "startChar": 69,
+        "endLine": 30,
+        "endChar": 86
+      },
+      "revId": "e1aec63b0327a27fba1904070ed1da94a4572e67",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_31c14e81",
+        "filename": "src/main/java/com/sap/river/cds/CDSOperationsImpl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-11-27T17:17:29Z",
+      "side": 1,
+      "message": "This needs to be the CDS namespace",
+      "range": {
+        "startLine": 30,
+        "startChar": 57,
+        "endLine": 30,
+        "endChar": 63
+      },
+      "revId": "e1aec63b0327a27fba1904070ed1da94a4572e67",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
