@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_4eca6f50",
+        "filename": "src/main/java/com/sap/river/odata/olingo/ODataOperationsImpl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 448,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-11-27T12:54:42Z",
+      "side": 1,
+      "message": "Please remove this",
+      "range": {
+        "startLine": 448,
+        "startChar": 4,
+        "endLine": 448,
+        "endChar": 10
+      },
+      "revId": "2f698141a9406be3fc06c587e8ab166effda316d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
