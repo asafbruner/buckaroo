@@ -261,10 +261,11 @@
 				</imports>
 				<beans>
 					<bean class="com.sap.ClassNameAsParameter" id="jpaServiceFactory"/>
-					<bean id="sfsfEDM" scope="prototype" class="EdmFactoryBean" />
-					<bean id="odataClient" class="ODataClient" >
-						<property name="endpoint" value="${sfsf-endpoint}"/>
-						<property name="authToken" value="${sfsf-basic_auth}"/>
+					<bean id="defaultEdm" scope="prototype" class="EdmFactoryBean" />
+					<bean id="defaultODataConn" scope="prototype" class="ODataConnectionBean" />
+					<bean id="odataServiceProvider" scope="prototype" class="ServiceProvider">
+						<!-- user should configure the service end-point here -->
+						<property name="endpoint" value="${odata.service.endpoint}" />
 					</bean>
 				</beans>
 				<serviceConfig>

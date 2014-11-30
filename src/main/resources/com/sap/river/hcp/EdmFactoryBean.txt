@@ -6,11 +6,11 @@ public class EdmFactoryBean implements FactoryBean<Edm> {
 
 
 	@Autowired
-	private ODataClient odataClient;
+	private ServiceProvider serviceProvider;
 
 	@Override
 	public Edm getObject() throws Exception {
-		return odataClient.readEdm();
+		return serviceProvider.readEdm();
 	}
 
 	@Override

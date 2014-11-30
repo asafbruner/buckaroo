@@ -6,11 +6,9 @@ import java.io.OutputStream;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
@@ -22,10 +20,9 @@ import org.springframework.roo.classpath.TypeManagementService;
 import org.springframework.roo.classpath.TypeParsingService;
 import org.springframework.roo.classpath.details.ClassOrInterfaceTypeDetails;
 import org.springframework.roo.classpath.details.ClassOrInterfaceTypeDetailsBuilder;
-import org.springframework.roo.classpath.details.ImportMetadata;
-import org.springframework.roo.classpath.details.ImportMetadataBuilder;
 import org.springframework.roo.classpath.details.annotations.AnnotationMetadataBuilder;
 import org.springframework.roo.model.JavaType;
+import org.springframework.roo.model.SpringJavaType;
 import org.springframework.roo.process.manager.FileManager;
 import org.springframework.roo.project.Dependency;
 import org.springframework.roo.project.MavenOperations;
@@ -39,11 +36,9 @@ import org.springframework.roo.support.util.XmlUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.springframework.roo.model.SpringJavaType;
 
 import com.sap.river.hcp.DeployCommands;
 import com.sap.river.util.ConfigurationUtil;
-import com.sap.river.util.FileUtil;
 
 @Component
 @Service
@@ -51,10 +46,11 @@ public class ODataOperationsImpl implements ODataOperations {
 	
 	private static Logger LOGGER = Logger.getLogger(ODataOperationsImpl.class.getName());
 	
-	private final String CONFIGURATION_BASE_PATH = "/configuration/river/olingo";
-	private final String XML_NS_ODATA = "xmlns:odata";
-	private final String XSI_SCHEMA_LOCATION = "xsi:schemaLocation";
-	private final String SFSF_PROPERTIES_FILE = "sfsf-client.properties";
+	private static final String CONFIGURATION_BASE_PATH = "/configuration/river/olingo";
+	private static final String CONFIGURATION_APP_CONFIG_BASE_PATH = "/configuration/river/olingo/appContextConfig";
+	private static final String XML_NS_ODATA = "xmlns:odata";
+	private static final String XSI_SCHEMA_LOCATION = "xsi:schemaLocation";
+	private static final String ODATA_SERVICE_PROPERTIES_FILE = "odata-service.properties";
 	
 	/**river specific details in the project setup files (such as pom.xml etc.) */	
 	@Reference private ProjectOperations projectOperations;
@@ -196,7 +192,7 @@ public class ODataOperationsImpl implements ODataOperations {
 	}
 	
 
-	public void setupOlingoJPAFactory(final JavaType factoryClass) {
+	protected void setupOlingoJPAFactory(final JavaType factoryClass) {
 		updateApplicationContextConfig();
 		createServiceFactoryClass(factoryClass);
 	}
@@ -204,7 +200,7 @@ public class ODataOperationsImpl implements ODataOperations {
 	/**
 	 * This method update the spring application context configuration file
 	 */
-	private void updateApplicationContextConfig() {
+	protected void updateApplicationContextConfig() {
 		
 		final String configPath = projectOperations.getPathResolver().
 				getFocusedIdentifier(Path.SPRING_CONFIG_ROOT, "/applicationContext.xml");
@@ -215,9 +211,9 @@ public class ODataOperationsImpl implements ODataOperations {
 		final Element configuration = XmlUtils.getConfiguration(DeployCommands.class);
 		
 		//Identify odata olingo namespace to be added to Spring configuration file
-		 String olingoNamespace = XmlUtils.findFirstElement(CONFIGURATION_BASE_PATH + "/appContextConfig" +
+		 String olingoNamespace = XmlUtils.findFirstElement(CONFIGURATION_APP_CONFIG_BASE_PATH +
                 "/namespaces/olingo-ns", configuration).getTextContent();
-		 String olingoSchemaLocation = XmlUtils.findFirstElement(CONFIGURATION_BASE_PATH + "/appContextConfig" +
+		 String olingoSchemaLocation = XmlUtils.findFirstElement(CONFIGURATION_APP_CONFIG_BASE_PATH +
 	                "/schemaLocation", configuration).getTextContent();
 		 
 		Element beansElement = XmlUtils.findFirstElement("/beans",appContextXml);
@@ -239,7 +235,7 @@ public class ODataOperationsImpl implements ODataOperations {
 			configCXFImport.getParentNode().removeChild(configCXFImport);
 			//appContextXml.removeChild(document.importNode(configCXFImport, true));
 		}
-		configCXFImport = XmlUtils.findFirstElement(CONFIGURATION_BASE_PATH + "/appContextConfig" +
+		configCXFImport = XmlUtils.findFirstElement(CONFIGURATION_APP_CONFIG_BASE_PATH +
                 "/imports/import[@resource = 'classpath:META-INF/cxf/cxf.xml']", configuration);
 		Node configCXFImportNode = document.importNode(configCXFImport, true);
 		appContextXml.appendChild(configCXFImportNode);
@@ -250,7 +246,7 @@ public class ODataOperationsImpl implements ODataOperations {
 			configCXFServletImport.getParentNode().removeChild(configCXFServletImport);
 			//appContextXml.removeChild(document.importNode(configCXFServletImport, true));
 		}
-		configCXFServletImport = XmlUtils.findFirstElement(CONFIGURATION_BASE_PATH + "/appContextConfig" +
+		configCXFServletImport = XmlUtils.findFirstElement(CONFIGURATION_APP_CONFIG_BASE_PATH +
 		    "/imports/import[@resource = 'classpath:META-INF/cxf/cxf-servlet.xml']", configuration);
 		Node configCXFImportServletNode = document.importNode(configCXFServletImport, true);
 		appContextXml.appendChild(configCXFImportServletNode);
@@ -262,7 +258,7 @@ public class ODataOperationsImpl implements ODataOperations {
 			configODataService.getParentNode().removeChild(configODataService);
 			//appContextXml.removeChild(document.importNode(configODataService, true));
 		}
-		configODataService = XmlUtils.findFirstElement(CONFIGURATION_BASE_PATH + "/appContextConfig" +
+		configODataService = XmlUtils.findFirstElement(CONFIGURATION_APP_CONFIG_BASE_PATH +
 		    "/serviceConfig/*", configuration);
 		Node configOdataServiceNode = document.importNode(configODataService, true);
 		appContextXml.appendChild(configOdataServiceNode);
@@ -277,7 +273,7 @@ public class ODataOperationsImpl implements ODataOperations {
 	 * 
 	 * @param factoryClassName - the name of the factory class
 	 */
-	private void createServiceFactoryClass(JavaType factoryClass) {
+	protected void createServiceFactoryClass(JavaType factoryClass) {
 		
 		final String declaredByMetadataId = PhysicalTypeIdentifier
 				.createIdentifier(factoryClass,
@@ -323,37 +319,44 @@ public class ODataOperationsImpl implements ODataOperations {
                 newContents, true);
 	
 	}
+	
+	protected String getPropertiesPath(String resourcePath) {
+		final String propertiesPath = pathResolver
+				.getFocusedIdentifier(Path.SRC_MAIN_RESOURCES, resourcePath);
+		final boolean propertiesPathExists = fileManager
+				.exists(propertiesPath);
 
-	private void createClientPropertiesFile(String serviceBasePath, String username, String password) {
-		
-		final String externalServicePropertiesPath = pathResolver
-				.getFocusedIdentifier(Path.SRC_MAIN_RESOURCES,
-						"META-INF\\spring\\" + SFSF_PROPERTIES_FILE);
-		final boolean externalServicePropertiesPathExists = fileManager
-				.exists(externalServicePropertiesPath);
-
-		if (!externalServicePropertiesPathExists) {
+		if (!propertiesPathExists) {
 			OutputStream outputStream = fileManager.createFile(
-					externalServicePropertiesPath).getOutputStream();
+					propertiesPath).getOutputStream();
 			if (outputStream == null) {
-				LOGGER.info("Could not create client properties file on disk");
+				LOGGER.info("Could not create properties file " + resourcePath);
 			}
 		}
 		
+		return propertiesPath;
+	}
+
+	protected void createClientPropertiesFile(String serviceBasePath, String username, String password) {
+		final String externalServicePropertiesPath = getPropertiesPath(
+				"META-INF\\spring\\" + ODATA_SERVICE_PROPERTIES_FILE);
+		
 		//TODO this code replaces any already existed client properties file with the following.
 		//Should consider merging!
-		
 		StringBuilder propertiesContent = new StringBuilder();
 		
-		//Embed the service name
-		propertiesContent.append("sfsf-endpoint=").append(serviceBasePath).append("\n");
+		//OData service properties
+		propertiesContent.append("odata.service.endpoint=").append(serviceBasePath).append("\n");
+		propertiesContent.append("odata.service.version=").append("2.0").append("\n");
 		
-		//Embed the basic auth generated from the given user and password
-		propertiesContent.append("sfsf-basic_auth=Basic ");
-		String authString = username + ":" + password;
-		byte[] authEncBytes = Base64.encodeBase64(authString.getBytes());
-		String authStringEnc = new String(authEncBytes);
-		propertiesContent.append(authStringEnc).append("\n");
+		//Embed connection setup properties
+		propertiesContent.append("connection.authentication.type=Basic\n");
+		propertiesContent.append("connection.authentication.user=").append(username).append("\n");
+		propertiesContent.append("connection.authentication.password=").append(password).append("\n");
+		
+		//Embed Http Headers properties for default behavior
+		propertiesContent.append("connection.http.headers.accept=").append("application/json").append("\n");
+		propertiesContent.append("connection.http.headers.contentType=").append("application/json").append("\n");
 		
 		fileManager.createOrUpdateTextFileIfRequired(externalServicePropertiesPath,
                  propertiesContent.toString(), null, false);
@@ -365,7 +368,7 @@ public class ODataOperationsImpl implements ODataOperations {
 	 * @param filename - the filename to copy the content from
 	 * @param className - the new class name to generate
 	 */
-	private void createClassFromFile(String filename, String className) {
+	protected void createClassFromFile(String filename, String className) {
 		//Creating a class builder
 		JavaType EdmFactoryJT = new JavaType(projectOperations.getFocusedTopLevelPackage() + ".odata." + className);
 		String packageName = EdmFactoryJT.getFullyQualifiedTypeName().substring(0, EdmFactoryJT.getFullyQualifiedTypeName().lastIndexOf('.'));
@@ -399,15 +402,34 @@ public class ODataOperationsImpl implements ODataOperations {
                 newContents, true);
 	}
 	
-	private void createEdmFactoryClass() {
+	private void createEdmFactory() {
 		createClassFromFile("EdmFactoryBean.txt", "EdmFactoryBean");
 	}
 	
-	private void createClientClass() {
-		createClassFromFile("ODataClient.txt", "ODataClient");
+	private void createConnectionBean() {
+		createClassFromFile("ODataConnectionBean.txt", "ODataConnectionBean");
 	}
 	
-	private void setupODataClientApplicationContext() {
+	private void createServiceProvider() {
+		createClassFromFile("ServiceProvider.txt", "ServiceProvider");
+	}
+	
+	protected void updateBean(Document document, final Element configuration, Element appContextXml, final String xPath) {
+		Element beanElement = XmlUtils.findFirstElement(xPath, appContextXml);
+		if (beanElement != null) {
+			beanElement.getParentNode().removeChild(
+					beanElement);
+		}
+		beanElement = XmlUtils.findFirstElement(
+				CONFIGURATION_APP_CONFIG_BASE_PATH + xPath, configuration);
+		String className = beanElement.getAttribute("class");
+		beanElement.setAttribute("class",
+				projectOperations.getFocusedTopLevelPackage() + ".odata." + className);
+		Node edmFactoryBeanNode = document.importNode(beanElement, true);
+		appContextXml.appendChild(edmFactoryBeanNode);
+	}
+	
+	protected void setupODataServiceApplicationContext() {
 		
 		final String configPath = projectOperations.getPathResolver().
 				getFocusedIdentifier(Path.SPRING_CONFIG_ROOT, "/applicationContext.xml");
@@ -417,32 +439,15 @@ public class ODataOperationsImpl implements ODataOperations {
 		//read the configuration file from the current CLASSPATH
 		final Element configuration = XmlUtils.getConfiguration(DeployCommands.class);
 		
-		//Inject the beans
-		Element edmFactoryBeanElement = XmlUtils.findFirstElement(
-	                        "/beans/bean[@id = 'sfsfEDM']", appContextXml);
-		if (edmFactoryBeanElement != null) {
-			edmFactoryBeanElement.getParentNode().removeChild(edmFactoryBeanElement);
-		}
-		edmFactoryBeanElement = XmlUtils.findFirstElement(CONFIGURATION_BASE_PATH + "/appContextConfig" +
-                "/beans/bean[@id = 'sfsfEDM']", configuration);
-		String className = edmFactoryBeanElement.getAttribute("class");
-		edmFactoryBeanElement.setAttribute("class", projectOperations.getFocusedTopLevelPackage() + ".odata." + className);
-		Node edmFactoryBeanNode = document.importNode(edmFactoryBeanElement, true);
-		appContextXml.appendChild(edmFactoryBeanNode);
+		//configure EdmFactoryBean
+		updateBean(document, configuration, appContextXml, "/beans/bean[@id = 'defaultEdm']");
 		
-		Element odataClientBeanElement = XmlUtils.findFirstElement(
-                "/beans/bean[@id = 'odataClient']", appContextXml);
-		if (odataClientBeanElement != null) {
-			odataClientBeanElement.getParentNode().removeChild(odataClientBeanElement);
-		}
-		odataClientBeanElement = XmlUtils.findFirstElement(CONFIGURATION_BASE_PATH + "/appContextConfig" +
-		    "/beans/bean[@id = 'odataClient']", configuration);
-		className = odataClientBeanElement.getAttribute("class");
-		odataClientBeanElement.setAttribute("class", projectOperations.getFocusedTopLevelPackage() + ".odata." + className);
-		Node odataClientBeanNode = document.importNode(odataClientBeanElement, true);
-		appContextXml.appendChild(odataClientBeanNode);
-
-
+		//configure ODataConnectionBean
+		updateBean(document, configuration, appContextXml, "/beans/bean[@id = 'defaultODataConn']");
+		
+		//configure ServiveProvider
+		updateBean(document, configuration, appContextXml, "/beans/bean[@id = 'odataServiceProvider']");
+		
 		DomUtils.removeTextNodes(appContextXml);
 		fileManager.createOrUpdateTextFileIfRequired(configPath, XmlUtils.nodeToString(appContextXml), false);
 		//LOGGER.info(XmlUtils.nodeToString(appContextXml));
@@ -456,14 +461,14 @@ public class ODataOperationsImpl implements ODataOperations {
 		// TODO name of the file should not be hardcoded !!!
 		createClientPropertiesFile(serviceBasePath, username, password);
 		
-		//Create EdmFactoryBean
-		createEdmFactoryClass();
+		//Create some infrastructure beans that allow the users to plug odata service
+		//consumption support into their application
+		createEdmFactory();
+		createConnectionBean();
+		createServiceProvider();
+		//
        
-		//Create ODataClient
-		//TODO - still need to change the ODataClient content
-		createClientClass();
-		
-		setupODataClientApplicationContext();
+		setupODataServiceApplicationContext();
 		
 		//Creation of the class that invokes all the generated function imports
 		//createServiceClient();
