@@ -5,7 +5,6 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.component.ComponentContext;
-import org.springframework.roo.shell.CliAvailabilityIndicator;
 import org.springframework.roo.shell.CliCommand;
 import org.springframework.roo.shell.CliOption;
 import org.springframework.roo.shell.CommandMarker;
@@ -17,8 +16,8 @@ import org.springframework.roo.shell.CommandMarker;
  * The command class is registered by the Roo shell following an automatic CLASSPATH scan,
  * and enables the desired commands in Roo by implementing the CommandMarker interface.
  * 
- * The commands will be bound to methods defined in interface DeployOperations.
- * The actual implementation of the interface is done by class DeployOperationsImpl.
+ * The commands will be bound to methods defined in interface CDSOperations.
+ * The actual implementation of the interface is done by class CDSOperationsImpl.
  * 
  * @see CDSOperations
  * @see CDSOperationsImpl
@@ -28,7 +27,7 @@ import org.springframework.roo.shell.CommandMarker;
 public class CDSCommands implements CommandMarker {
 	
 	/**
-	 * Get a reference to the DeployOperations from the underlying OSGi container
+	 * Get a reference to the CDSOperations from the underlying OSGi container
 	 */
 	@Reference private CDSOperations operations;
 	

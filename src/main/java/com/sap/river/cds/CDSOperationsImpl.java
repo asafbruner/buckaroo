@@ -27,9 +27,11 @@ public class CDSOperationsImpl implements CDSOperations {
 	
 	@Reference private Shell shell;
 	
-	private final String entityTmpl = "entity jpa --class ~.domain.%s --testAutomatically";
-	private final String fieldAssoc1to1Tmpl = "field reference --fieldName %s --type ~.domain.%s";
-	private final String fieldAssoc1toManyTmpl = "field set --fieldName %s --type ~.domain.%s";
+
+	private final String entityTmpl = "entity jpa --class %s.%s --testAutomatically";
+	private final String fieldAssoc1to1Tmpl = "field reference --fieldName %s --type %s.%s";
+	private final String fieldAssoc1toManyTmpl = "field set --fieldName %s --type %s.%s";
+
 	private final String NOT_NULL = "--notNull";
 	private final String fieldString = "field string --fieldName %s %s --sizeMin %s --sizeMax %s";   //String only.  The placeholders are  fieldName, notNull, sizeMin value, sizeMax value
 	private final String fieldOther = "field %s --fieldName %s %s --type %s";   //All other classic types. The placeholders are  field, fieldName, notNull, and type
@@ -41,7 +43,10 @@ public class CDSOperationsImpl implements CDSOperations {
 	private final String alpha = "[a-zA-Z]*";
 	private final String ci = "(?i)";//case insensitive
 	//line to ignore (CDS lines that are not relevant to roo)
-	private final Pattern pattIgnoreLine = Pattern.compile(ci + "^" + ws + "namespace|^" + ws + "@Schema|^" + ws + "context");
+
+	private final Pattern pattIgnoreLine = Pattern.compile(ci + "^" + ws + "@Schema|^" + ws + "context");
+	//namespace
+	private final Pattern pattNamespace = Pattern.compile(ci + "^" + ws + "namespace" + ws + "([a-zA-Z\\.]+);");
 	//Entity line is expected to have the form "entity <entityName> {"  We identify the entity word, and the entityName
 	private final Pattern pattEntityLine = Pattern.compile("^" + ws + "entity" + ws + "(" + alpha + ")"); 
 	//Field line is expected to be of the form "<fieldname> : <type>"
@@ -113,7 +118,9 @@ public class CDSOperationsImpl implements CDSOperations {
 			return;
 		}
 		
-		StringBuilder sbRooEntityCommands = new StringBuilder();				
+		StringBuilder sbRooEntityCommands = new StringBuilder();
+		StringBuilder namespaceSB = new StringBuilder();
+
 		
 		//read the file
 		BufferedReader br = null;
@@ -126,11 +133,18 @@ public class CDSOperationsImpl implements CDSOperations {
 				if (matcherIgnore.find() == true){//if this is an irrelevant line, move on
 					continue;
 				}
+
+				//namespace
+				Matcher matcherNamespace = pattNamespace.matcher(line);
+				if (matcherNamespace.find() == true){
+					namespaceSB = new StringBuilder(matcherNamespace.group(1));
+					continue;
+				}
 				
 				//entity
 				Matcher matcherEntity = pattEntityLine.matcher(line);
 				if (matcherEntity.find() == true){
-					sbRooEntityCommands.append(String.format(entityTmpl, matcherEntity.group(1))).append(NEW_LINE);
+					sbRooEntityCommands.append(String.format(entityTmpl, namespaceSB, matcherEntity.group(1))).append(NEW_LINE);
 					continue;
 				}
 				
@@ -152,13 +166,13 @@ public class CDSOperationsImpl implements CDSOperations {
 				Matcher matchAssociation1to1 = pattFieldAssoc1To1.matcher(fieldTypeOrAssociation);
 				if (matchAssociation1to1.find() == true){
 					//group 1 of matchFullField is field name, group 1 of matchAssociation1to1 is the name of the entity	
-					sbRooEntityCommands.append(String.format(fieldAssoc1to1Tmpl, matchFullField.group(1), matchAssociation1to1.group(1))).append(NEW_LINE);
+					sbRooEntityCommands.append(String.format(fieldAssoc1to1Tmpl, matchFullField.group(1), namespaceSB, matchAssociation1to1.group(1))).append(NEW_LINE);
 					continue;
 				}
 				Matcher matchAssociation1toMany = pattFieldAssoc1toMany.matcher(fieldTypeOrAssociation);
 				if (matchAssociation1toMany.find() == true){
 					//group 1 of matchFullField is field name, group 1 of matchAssociation1toMany is the name of the entity
-					sbRooEntityCommands.append(String.format(fieldAssoc1toManyTmpl, matchFullField.group(1), matchAssociation1toMany.group(1))).append(NEW_LINE);
+					sbRooEntityCommands.append(String.format(fieldAssoc1toManyTmpl, matchFullField.group(1), namespaceSB, matchAssociation1toMany.group(1))).append(NEW_LINE);
 					continue;
 				}
 				
