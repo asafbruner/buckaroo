@@ -1,0 +1,135 @@
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.Proxy;
+import java.net.URL;
+import java.util.Map;
+
+import org.apache.commons.codec.binary.Base64;
+import org.apache.olingo.odata2.api.commons.HttpHeaders;
+import org.apache.olingo.odata2.api.commons.HttpStatusCodes;
+import org.apache.olingo.odata2.api.commons.ODataHttpMethod;
+import org.springframework.beans.factory.annotation.Value;
+
+public class ODataConnectionBean {
+	
+	@Value("${connection.authentication.type:Basic}")
+	String authenticationType;
+	
+	@Value("${connection.authentication.user:}")
+	String userName;
+	
+	@Value("${connection.authentication.password:}")
+	String password;
+	
+	@Value("${connection.http.headers.accept:}")
+	String httpHeaderAccept;
+	
+	@Value("${connection.http.headers.contentType:}")
+	String httpHeaderConnectType;
+	
+	//TODO: Add Proxy support
+	private Proxy proxy;
+	
+	public String getAuthenticationType() {
+		return authenticationType;
+	}
+
+	public void setAuthenticationType(String authenticationType) {
+		this.authenticationType = authenticationType;
+	}
+
+	public String getUserName() {
+		return userName;
+	}
+
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+	
+	public String getHttpHeaderAccept() {
+		return httpHeaderAccept;
+	}
+
+	public void setHttpHeaderAccept(String httpHeaderAccept) {
+		this.httpHeaderAccept = httpHeaderAccept;
+	}
+
+	public String getHttpHeaderConnectType() {
+		return httpHeaderConnectType;
+	}
+
+	public void setHttpHeaderConnectType(String httpHeaderConnectType) {
+		this.httpHeaderConnectType = httpHeaderConnectType;
+	}
+	
+	protected boolean requiresBasicAuthorization() {
+		return "Basic".equals(authenticationType);
+	}
+	
+	protected String getBasicAuthorizationString() {
+		String authString = userName + ":" + password;
+		byte[] encodedString = Base64.encodeBase64(authString.getBytes());
+		return "Basic " + new String(encodedString);
+	}
+	
+	protected boolean requiresOutput(String httpMethod) {
+		return ODataHttpMethod.POST.name().equalsIgnoreCase(httpMethod) ||
+				ODataHttpMethod.PUT.name().equalsIgnoreCase(httpMethod);
+	}
+
+	protected HttpURLConnection getConnection(String path, String httpMethod, Map<String, String> headers) throws IOException {
+		URL url = new URL(path);
+		HttpURLConnection connection = (HttpURLConnection) (proxy == null ? url.openConnection() : url.openConnection(proxy));
+		
+		//set request method
+		connection.setRequestMethod(httpMethod);
+		connection.setDoOutput(requiresOutput(httpMethod));
+		
+		//set authentication properties
+		if (requiresBasicAuthorization()) {
+			connection.setRequestProperty(HttpHeaders.AUTHORIZATION, getBasicAuthorizationString());
+		}
+		
+		//set content headers
+		if (!httpHeaderAccept.isEmpty()) {
+			connection.setRequestProperty(HttpHeaders.ACCEPT, httpHeaderAccept);
+		}
+		if (!httpHeaderConnectType.isEmpty()) {
+			connection.setRequestProperty(HttpHeaders.CONTENT_TYPE, httpHeaderConnectType);
+		}
+		
+		//set or override headers
+		if (headers != null) {
+			for (String header : headers.keySet()) {
+				connection.setRequestProperty(header, headers.get(header));
+			}
+		}
+		
+		return connection;
+	}
+	
+	protected void validate(HttpURLConnection conn) throws IOException {
+		int statusCode = conn.getResponseCode();
+		if (statusCode >= HttpStatusCodes.BAD_REQUEST.getStatusCode()) {
+			throw new IllegalStateException("Request Failed with status "+ HttpStatusCodes.fromStatusCode(statusCode).toString());
+		}
+		
+	}
+	
+	public InputStream sendRequest(String path, String httpMethod, Map<String, String> headers) throws IOException {
+		HttpURLConnection conn = getConnection(path, httpMethod, headers);
+		conn.connect();
+		validate(conn);
+		return conn.getInputStream();
+	}
+
+}
