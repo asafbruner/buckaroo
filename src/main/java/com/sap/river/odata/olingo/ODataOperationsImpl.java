@@ -450,7 +450,6 @@ public class ODataOperationsImpl implements ODataOperations {
 		
 		DomUtils.removeTextNodes(appContextXml);
 		fileManager.createOrUpdateTextFileIfRequired(configPath, XmlUtils.nodeToString(appContextXml), false);
-		//LOGGER.info(XmlUtils.nodeToString(appContextXml));
 	}
 
 
