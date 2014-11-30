@@ -23,7 +23,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <google.code.project.name>${project.name}</google.code.project.name>
         <repo.folder>com/sap/river</repo.folder>
-        <olingo.version>2.0.2-SNAPSHOT</olingo.version>
+        <olingo.version>2.0.0</olingo.version>
     </properties>
     <repositories>
         <repository>
@@ -135,11 +135,6 @@
             <artifactId>olingo-odata2-jpa-processor-core</artifactId>
             <version>${olingo.version}</version>
             <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.olingo</groupId>
-            <artifactId>odata2-spring</artifactId>
-            <version>${olingo.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
