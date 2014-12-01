@@ -13,6 +13,11 @@ import org.apache.commons.io.IOUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.olingo.odata2.api.edm.Edm;
+import org.apache.olingo.odata2.api.edm.EdmEntitySet;
+import org.apache.olingo.odata2.api.edm.EdmSimpleType;
+import org.apache.olingo.odata2.api.edm.EdmTypeKind;
+import org.apache.olingo.odata2.api.ep.entry.ODataEntry;
 import org.springframework.roo.classpath.PhysicalTypeCategory;
 import org.springframework.roo.classpath.PhysicalTypeIdentifier;
 import org.springframework.roo.classpath.TypeLocationService;
@@ -20,7 +25,13 @@ import org.springframework.roo.classpath.TypeManagementService;
 import org.springframework.roo.classpath.TypeParsingService;
 import org.springframework.roo.classpath.details.ClassOrInterfaceTypeDetails;
 import org.springframework.roo.classpath.details.ClassOrInterfaceTypeDetailsBuilder;
+import org.springframework.roo.classpath.details.FieldMetadataBuilder;
+import org.springframework.roo.classpath.details.ImportMetadata;
+import org.springframework.roo.classpath.details.ImportMetadataBuilder;
+import org.springframework.roo.classpath.details.MethodMetadataBuilder;
 import org.springframework.roo.classpath.details.annotations.AnnotationMetadataBuilder;
+import org.springframework.roo.classpath.itd.InvocableMemberBodyBuilder;
+import org.springframework.roo.model.JavaSymbolName;
 import org.springframework.roo.model.JavaType;
 import org.springframework.roo.model.SpringJavaType;
 import org.springframework.roo.process.manager.FileManager;
@@ -60,6 +71,14 @@ public class ODataOperationsImpl implements ODataOperations {
 	@Reference private TypeManagementService typeManagementService;
 	@Reference private TypeLocationService typeLocationService;
 	@Reference private TypeParsingService typeParsingService;
+	
+	/** connection and OData provider */
+	private ODataServiceProvider odataServiceProvider;
+	
+	public ODataOperationsImpl() {
+		odataServiceProvider = new ODataServiceProvider();
+		odataServiceProvider.setConnection(new ODataConnection());
+	}
 	
 	///////////////////////////////////////////
 	// API
@@ -194,7 +213,7 @@ public class ODataOperationsImpl implements ODataOperations {
 
 	protected void setupOlingoJPAFactory(final JavaType factoryClass) {
 		updateApplicationContextConfig();
-		createServiceFactoryClass(factoryClass);
+		createJPAServiceFactoryClass(factoryClass);
 	}
 	
 	/**
@@ -267,13 +286,134 @@ public class ODataOperationsImpl implements ODataOperations {
 		fileManager.createOrUpdateTextFileIfRequired(configPath, XmlUtils.nodeToString(appContextXml), false);
 		//LOGGER.info(XmlUtils.nodeToString(appContextXml));
 	}
+	
+	protected void createODataServiceProxyBean(JavaType serviceClass, Edm edm) throws Exception {
+		
+		final String declaredByMetadataId = PhysicalTypeIdentifier
+				.createIdentifier(serviceClass,
+						pathResolver.getFocusedPath(Path.SRC_MAIN_JAVA));
+		final ClassOrInterfaceTypeDetailsBuilder cidBuilder = new ClassOrInterfaceTypeDetailsBuilder(
+				declaredByMetadataId, Modifier.PUBLIC, serviceClass,
+				PhysicalTypeCategory.CLASS);
+		
+		//Build Imports
+		final List<ImportMetadata> imports = new ArrayList<ImportMetadata>();
+		imports.add(ImportMetadataBuilder.getImport(declaredByMetadataId, new JavaType("java.lang.Exception")));
+		imports.add(ImportMetadataBuilder.getImport(declaredByMetadataId, new JavaType("java.util.LinkedHashMap")));
+		imports.add(ImportMetadataBuilder.getImport(declaredByMetadataId, new JavaType("java.util.Map")));
+		imports.add(ImportMetadataBuilder.getImport(declaredByMetadataId, new JavaType("org.apache.olingo.odata2.api.edm.Edm")));
+		imports.add(ImportMetadataBuilder.getImport(declaredByMetadataId, new JavaType("org.springframework.beans.factory.annotation.Autowired")));
+		cidBuilder.addImports(imports);
+		
+		//Add @Service Annotation
+		final List<AnnotationMetadataBuilder> annotationBuilder = new ArrayList<AnnotationMetadataBuilder>();
+		annotationBuilder.add(new AnnotationMetadataBuilder(SpringJavaType.SERVICE));
+		cidBuilder.setAnnotations(annotationBuilder);
+		
+		final List<FieldMetadataBuilder> fields = new ArrayList<FieldMetadataBuilder>();
+		
+		//Add @Autowired ODataServiceProvider
+		FieldMetadataBuilder memberServiceProvider = new FieldMetadataBuilder(
+				declaredByMetadataId, Modifier.PROTECTED, 
+				new JavaSymbolName("serviceProvider"),
+                new JavaType("ODataServiceProvider"), null);
+		memberServiceProvider.addAnnotation(new AnnotationMetadataBuilder(SpringJavaType.AUTOWIRED));
+		fields.add(memberServiceProvider);
+		
+		//Add @Autowired ODataServiceProvider
+		FieldMetadataBuilder memberEdm = new FieldMetadataBuilder(
+				declaredByMetadataId, Modifier.PROTECTED, 
+				new JavaSymbolName("edm"),
+				new JavaType("Edm"), null);
+		memberEdm.addAnnotation(new AnnotationMetadataBuilder(SpringJavaType.AUTOWIRED));
+		fields.add(memberEdm);
+		cidBuilder.setDeclaredFields(fields);
+		
+		//Add Methods
+		// 1. Add Function Imports
+		final List<org.apache.olingo.odata2.api.edm.EdmFunctionImport> edmFunctions = edm.getFunctionImports();
+		for (org.apache.olingo.odata2.api.edm.EdmFunctionImport efi : edmFunctions) {
+			System.out.println("=====> generating function "+efi.getName());
+			
+			//initialize method builder
+			MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(
+					declaredByMetadataId);
+			methodBuilder.setModifier(Modifier.PUBLIC);
+			methodBuilder.setMethodName(new JavaSymbolName(efi.getName()));
+			
+			//method return type
+			JavaType returnType;
+			if (EdmTypeKind.SIMPLE.equals(
+					efi.getReturnType().getType().getKind())) {
+				EdmSimpleType stype = (EdmSimpleType)(efi.getReturnType().getType());
+				returnType = new JavaType(stype.getDefaultType().getName());
+			} else {
+				returnType = new JavaType(java.lang.Object.class.getName());
+			}
+			methodBuilder.setReturnType(returnType);
+			
+			//method throws clause
+			methodBuilder.addThrowsType(new JavaType("java.lang.Exception"));
+            
+            //method body and parameters
+            final InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+            bodyBuilder.appendFormalLine("Map<String, Object> params = new LinkedHashMap<String, Object>();");
+            
+            for (String paramName : efi.getParameterNames()) {
+            	//add the parameter definition to the method builder
+            	methodBuilder.addParameter(paramName, new JavaType(efi.getParameter(paramName).getType().getName()));
+            	
+            	//add code to insert the parameter value to the map
+            	bodyBuilder.appendFormalLine("params.put(\"" + paramName + "\", " + paramName + ");");
+            }
+            bodyBuilder.newLine();
+            bodyBuilder.appendFormalLine("return serviceProvider.invokeFunction(edm.getDefaultEntityContainer().getFunctionImport(\"" +
+            		efi.getName() +"\"), params);");
+            
+            methodBuilder.setBodyBuilder(bodyBuilder);
+            cidBuilder.addMethod(methodBuilder);
+		}
+		
+		// 2. Add getters to entities
+		final List<EdmEntitySet> entitySets = edm.getDefaultEntityContainer().getEntitySets();
+		for (EdmEntitySet entitySet : entitySets) {
+			System.out.println("=====> generating feed "+entitySet.getName());
+			
+			//initialize method builder
+			MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(
+					declaredByMetadataId);
+			methodBuilder.setModifier(Modifier.PUBLIC);
+			methodBuilder.setMethodName(new JavaSymbolName("get"+entitySet.getName()+"List"));
+			
+			//set return method
+			List<ODataEntry> returnType = new ArrayList<ODataEntry>();
+			methodBuilder.setReturnType(new JavaType((Class<?>) returnType.getClass().getGenericSuperclass()));
+			
+			//method throws clause
+			methodBuilder.addThrowsType(new JavaType("java.lang.Exception"));
+			
+			//method body and parameters
+            final InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+            bodyBuilder.appendFormalLine("return serviceProvider.readFeed(edm, " + entitySet.getName() + ");");
+            
+            methodBuilder.setBodyBuilder(bodyBuilder);
+            cidBuilder.addMethod(methodBuilder);
+            
+			
+		}
+		
+		typeManagementService.createOrUpdateTypeOnDisk(cidBuilder.build());
+		
+		
+	}
+	
 
 	/**
 	 * Creates the generated OData service factory class
 	 * 
 	 * @param factoryClassName - the name of the factory class
 	 */
-	protected void createServiceFactoryClass(JavaType factoryClass) {
+	protected void createJPAServiceFactoryClass(JavaType factoryClass) {
 		
 		final String declaredByMetadataId = PhysicalTypeIdentifier
 				.createIdentifier(factoryClass,
@@ -411,7 +551,7 @@ public class ODataOperationsImpl implements ODataOperations {
 	}
 	
 	private void createServiceProvider() {
-		createClassFromFile("ServiceProvider.txt", "ServiceProvider");
+		createClassFromFile("ODataServiceProvider.txt", "ODataServiceProvider");
 	}
 	
 	protected void updateBean(Document document, final Element configuration, Element appContextXml, final String xPath) {
@@ -442,7 +582,7 @@ public class ODataOperationsImpl implements ODataOperations {
 		//configure EdmFactoryBean
 		updateBean(document, configuration, appContextXml, "/beans/bean[@id = 'defaultEdm']");
 		
-		//configure ODataConnectionBean
+		//configure ODataConnection
 		updateBean(document, configuration, appContextXml, "/beans/bean[@id = 'defaultODataConn']");
 		
 		//configure ServiveProvider
@@ -469,9 +609,28 @@ public class ODataOperationsImpl implements ODataOperations {
        
 		setupODataServiceApplicationContext();
 		
-		//Creation of the class that invokes all the generated function imports
-		//createServiceClient();
+		/****************** Remove Comment when roo dependency issue is resolved *****
+		//consume external service and generate service proxy
+		odataServiceProvider.getConnection().setUserName(username);
+		odataServiceProvider.getConnection().setPassword(password);
+		odataServiceProvider.setEndpoint(serviceBasePath);
 		
+		try {
+			Edm edm = odataServiceProvider.readEdm();
+			
+			//find the name of the service
+			String serviceName = edm.getDefaultEntityContainer().getName();
+			System.out.println("==> generating proxy for service "+serviceName);
+			JavaType serviceBeanType = new JavaType(
+					projectOperations.getFocusedTopLevelPackage() + ".odata." + serviceName);
+			
+			createODataServiceProxyBean(serviceBeanType, edm);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new IllegalStateException("failed to consume the external service", e);
+		}
+		***************************************************************************************/
 	}
 
 

@@ -263,7 +263,7 @@
 					<bean class="com.sap.ClassNameAsParameter" id="jpaServiceFactory"/>
 					<bean id="defaultEdm" scope="prototype" class="EdmFactoryBean" />
 					<bean id="defaultODataConn" scope="prototype" class="ODataConnectionBean" />
-					<bean id="odataServiceProvider" scope="prototype" class="ServiceProvider">
+					<bean id="odataServiceProvider" scope="prototype" class="ODataServiceProvider">
 						<!-- user should configure the service end-point here -->
 						<property name="endpoint" value="${odata.service.endpoint}" />
 					</bean>
