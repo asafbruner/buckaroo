@@ -32,6 +32,15 @@ public class XMLUtils {
 	private static final String BUILD_NAME = "build";
 	private static final String PLUGINS_NAME = "plugins";
 	private static final String PLUGIN_NAME = "plugin";
+	private static final String GROUPID_NAME = "groupId";
+	private static final String ARTIFACTID_NAME = "artifactId";
+	private static final String VERSION_NAME = "version";
+	private static final String EXECUTIONS_NAME = "executions";
+	private static final String EXECUTION_NAME = "execution";
+	
+	private static final String ID_NAME = "id";
+	private static final String GOALS_NAME = "goals";
+	private static final String GOAL_NAME = "goal";
 	
 	/**
 	 * return the root element of the POM
@@ -204,6 +213,7 @@ public class XMLUtils {
 	
 	//under the profiles section, create a new profile with correct profileId, and return the plugins element
 	private static Element addNewProfileSection(Document document, Element profiles, String profileIdVal){
+		//start with profile node
 		Element profile = document.createElement(PROFILE_NODE_NAME);
 		profiles.appendChild(profile);
 		
@@ -233,6 +243,64 @@ public class XMLUtils {
 		build.appendChild(plugins);		
 		
 		return (Element)plugins;
+	}
+	
+	public static Element generateMvnFailsafePlugin(Document document){
+		//generate plugin element
+		Element plugin = document.createElement(PLUGIN_NAME);
+		
+		//generate groupId tag, add to plugin
+		Element groupId = document.createElement(GROUPID_NAME);
+		groupId.setTextContent("org.apache.maven.plugins");
+		plugin.appendChild(groupId);
+		
+		//artifactId
+		Element artifactId = document.createElement(ARTIFACTID_NAME);
+		artifactId.setTextContent("maven-failsafe-plugin");
+		plugin.appendChild(artifactId);
+		
+		//version
+		Element version = document.createElement(VERSION_NAME);
+		version.setTextContent("2.13");
+		plugin.appendChild(version);
+		
+		//Executions
+		Element executions = document.createElement(EXECUTIONS_NAME);
+		plugin.appendChild(executions);
+		
+		//There are two Execute elements
+		
+		//Execute1
+		Element execution1 = document.createElement(EXECUTION_NAME);
+		executions.appendChild(execution1);
+		//Its id
+		Element id1 = document.createElement(ID_NAME);
+		id1.setTextContent("integration-test");
+		execution1.appendChild(id1);
+		//Its goals
+		Element goals1 = document.createElement(GOALS_NAME);
+		execution1.appendChild(goals1);
+		//The goals' goal
+		Element goal1 = document.createElement(GOAL_NAME);
+		goal1.setTextContent("integration-test");
+		goals1.appendChild(goal1);
+		
+		//Execute2
+		Element execution2 = document.createElement(EXECUTION_NAME);
+		executions.appendChild(execution2);
+		//Its id
+		Element id2 = document.createElement(ID_NAME);
+		id2.setTextContent("verify");
+		execution2.appendChild(id2);
+		//Its goals
+		Element goals2 = document.createElement(GOALS_NAME);
+		execution2.appendChild(goals2);
+		//The goals' goal
+		Element goal2 = document.createElement(GOAL_NAME);
+		goal2.setTextContent("verify");
+		goals2.appendChild(goal2);
+				
+		return plugin;
 	}
 	
 	/**
