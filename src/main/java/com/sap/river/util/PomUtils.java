@@ -70,6 +70,9 @@ public class PomUtils {
 			//add this plugin to the plugins element
 			XMLUtils.addPluginToProfile(plugins, plugin);
 		}	
+		
+		//add the failsafe plugin
+		plugins.appendChild(XMLUtils.generateMvnFailsafePlugin(document));
 
 		//save all changes made above into file
 		XMLUtils.saveXMLDocIntoFile(document, fullFilePathName);
