@@ -1,4 +1,4 @@
-package com.sap.river.odata.olingo;
+package com.sap.river.odata;
 
 import org.springframework.roo.model.JavaType;
 

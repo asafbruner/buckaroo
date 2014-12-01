@@ -1,4 +1,4 @@
-package com.sap.river.odata.olingo;
+package com.sap.river.odata;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;

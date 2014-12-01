@@ -1,4 +1,4 @@
-package com.sap.river.odata.olingo;
+package com.sap.river.odata;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,8 +15,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.olingo.odata2.api.edm.Edm;
 import org.apache.olingo.odata2.api.edm.EdmEntitySet;
-import org.apache.olingo.odata2.api.edm.EdmSimpleType;
-import org.apache.olingo.odata2.api.edm.EdmTypeKind;
+import org.apache.olingo.odata2.api.edm.EdmParameter;
 import org.springframework.roo.classpath.PhysicalTypeCategory;
 import org.springframework.roo.classpath.PhysicalTypeIdentifier;
 import org.springframework.roo.classpath.TypeLocationService;
@@ -30,7 +29,6 @@ import org.springframework.roo.classpath.details.ImportMetadataBuilder;
 import org.springframework.roo.classpath.details.MethodMetadataBuilder;
 import org.springframework.roo.classpath.details.annotations.AnnotationMetadataBuilder;
 import org.springframework.roo.classpath.itd.InvocableMemberBodyBuilder;
-import org.springframework.roo.model.DataType;
 import org.springframework.roo.model.JavaSymbolName;
 import org.springframework.roo.model.JavaType;
 import org.springframework.roo.model.SpringJavaType;
@@ -71,6 +69,9 @@ public class ODataOperationsImpl implements ODataOperations {
 	@Reference private TypeManagementService typeManagementService;
 	@Reference private TypeLocationService typeLocationService;
 	@Reference private TypeParsingService typeParsingService;
+	
+	/** Edm type management */
+	@Reference private EdmTypeParsingService edmParsingService;
 	
 	/** connection and OData provider */
 	private ODataServiceProvider odataServiceProvider;
@@ -343,17 +344,7 @@ public class ODataOperationsImpl implements ODataOperations {
 			methodBuilder.setMethodName(new JavaSymbolName(efi.getName()));
 			
 			//method return type
-			//TODO: Tidy up the type code
-			JavaType returnType;
-			if (efi.getReturnType() == null) {
-				returnType = JavaType.VOID_PRIMITIVE;
-			} else if (efi.getReturnType().getType() != null && EdmTypeKind.SIMPLE.equals(
-					efi.getReturnType().getType().getKind())) {
-				EdmSimpleType stype = (EdmSimpleType)(efi.getReturnType().getType());
-				returnType = new JavaType(stype.getDefaultType().getName());
-			} else {
-				returnType = new JavaType(java.lang.Object.class.getName());
-			}
+			JavaType returnType = edmParsingService.getReturnType(efi.getReturnType());
 			methodBuilder.setReturnType(returnType);
 			
 			//method throws clause
@@ -366,14 +357,8 @@ public class ODataOperationsImpl implements ODataOperations {
             for (String paramName : efi.getParameterNames()) {
             	
             	//add the parameter definition to the method builder
-            	EdmSimpleType simpleParam;
-            	if (EdmTypeKind.SIMPLE.equals(efi.getParameter(paramName).getType().getKind())) { //If parameter is simple type
-            		simpleParam = (EdmSimpleType)efi.getParameter(paramName).getType();
-            		methodBuilder.addParameter(paramName, new JavaType(simpleParam.getDefaultType()));
-            	}
-            	else { //parameter is an Object
-            		methodBuilder.addParameter(paramName, new JavaType("java.lang.Object"));
-            	}
+            	final EdmParameter edmParameter = efi.getParameter(paramName);
+            	methodBuilder.addParameter(paramName, edmParsingService.getParameterType(edmParameter));
             	
             	//add code to insert the parameter value to the map
             	bodyBuilder.appendFormalLine("params.put(\"" + paramName + "\", " + paramName + ");");
@@ -383,7 +368,7 @@ public class ODataOperationsImpl implements ODataOperations {
             String castStmnt = "";
             if (!returnType.equals(JavaType.VOID_PRIMITIVE)) { //The method has a return value
             	returnStmnt = "return ";
-            	if (efi.getReturnType().getType().getKind().equals(EdmTypeKind.SIMPLE)) {
+            	if (returnType.isCoreType()) {
             		castStmnt = "(" + returnType + ")";
             	}
             }
@@ -406,11 +391,7 @@ public class ODataOperationsImpl implements ODataOperations {
 			methodBuilder.setMethodName(new JavaSymbolName("get"+generateJavaSymbolFromEdmName(entitySet.getName())+"List"));
 			
 			//set return method
-			final List<JavaType> returnTypeGenericParams = new ArrayList<JavaType>();
-			returnTypeGenericParams.add(new JavaType("ODataEntry"));
-	        JavaType returnType = new JavaType(List.class.getName(), 0,
-	                DataType.TYPE, null, returnTypeGenericParams);
-			methodBuilder.setReturnType(returnType);
+			methodBuilder.setReturnType(edmParsingService.getFeedReturnType());
 			
 			//method throws clause
 			methodBuilder.addThrowsType(new JavaType("java.lang.Exception"));
@@ -426,10 +407,8 @@ public class ODataOperationsImpl implements ODataOperations {
 		}
 		
 		typeManagementService.createOrUpdateTypeOnDisk(cidBuilder.build());
-		
-		
 	}
-	
+
 
 	/**
 	 * Creates the generated OData service factory class

@@ -1,4 +1,4 @@
-package com.sap.river.odata.olingo;
+package com.sap.river.odata;
 
 import java.io.IOException;
 import java.io.InputStream;
