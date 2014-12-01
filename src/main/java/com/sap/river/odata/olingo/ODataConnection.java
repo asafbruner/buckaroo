@@ -94,24 +94,20 @@ public class ODataConnection {
 		
 		//set authentication properties
 		if (requiresBasicAuthorization()) {
-			System.out.println("setting authorization header");
 			connection.setRequestProperty(HttpHeaders.AUTHORIZATION, getBasicAuthorizationString());
 		}
 		
 		//set content headers
 		if (!httpHeaderAccept.isEmpty()) {
-			System.out.println("setting accept header");
 			connection.setRequestProperty(HttpHeaders.ACCEPT, httpHeaderAccept);
 		}
 		if (!httpHeaderConnectType.isEmpty()) {
-			System.out.println("setting contentType header");
 			connection.setRequestProperty(HttpHeaders.CONTENT_TYPE, httpHeaderConnectType);
 		}
 		
 		//set or override headers
 		if (headers != null) {
 			for (String header : headers.keySet()) {
-				System.out.println("setting " + header + " header");
 				connection.setRequestProperty(header, headers.get(header));
 			}
 		}
@@ -129,17 +125,6 @@ public class ODataConnection {
 	
 	public InputStream sendRequest(String path, String httpMethod, Map<String, String> headers) throws IOException {
 		HttpURLConnection conn = getConnection(path, httpMethod, headers);
-		
-		System.out.println("====== Sending Request =======");
-		System.out.println("URL: "+conn.getURL().toString());
-		System.out.println("Headers: ");
-		java.util.Map<String, java.util.List<String> > reqHeaders = conn.getHeaderFields();
-		for (String headerName : reqHeaders.keySet()) {
-			System.out.print("\t"+headerName+": ");
-			System.out.println(org.apache.commons.lang3.StringUtils.join(reqHeaders.get(headerName), ";"));
-		}
-		System.out.println("====== =============== =======");
-		
 		conn.connect();
 		validate(conn);
 		return conn.getInputStream();

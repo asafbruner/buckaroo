@@ -30,8 +30,9 @@ public interface ODataOperations {
 	 * @param serviceBasePath - the URI of the external service
 	 * @param username
 	 * @param password
+	 * @param serviceProxyName 
 	 */
-	void setupExternalService(String serviceBasePath, String username, String password);
+	void setupExternalService(final String serviceBasePath, final String username, final String password, final String serviceProxyName);
 	
 	
 }

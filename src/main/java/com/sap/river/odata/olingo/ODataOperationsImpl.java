@@ -17,7 +17,6 @@ import org.apache.olingo.odata2.api.edm.Edm;
 import org.apache.olingo.odata2.api.edm.EdmEntitySet;
 import org.apache.olingo.odata2.api.edm.EdmSimpleType;
 import org.apache.olingo.odata2.api.edm.EdmTypeKind;
-import org.apache.olingo.odata2.api.ep.entry.ODataEntry;
 import org.springframework.roo.classpath.PhysicalTypeCategory;
 import org.springframework.roo.classpath.PhysicalTypeIdentifier;
 import org.springframework.roo.classpath.TypeLocationService;
@@ -31,6 +30,7 @@ import org.springframework.roo.classpath.details.ImportMetadataBuilder;
 import org.springframework.roo.classpath.details.MethodMetadataBuilder;
 import org.springframework.roo.classpath.details.annotations.AnnotationMetadataBuilder;
 import org.springframework.roo.classpath.itd.InvocableMemberBodyBuilder;
+import org.springframework.roo.model.DataType;
 import org.springframework.roo.model.JavaSymbolName;
 import org.springframework.roo.model.JavaType;
 import org.springframework.roo.model.SpringJavaType;
@@ -303,6 +303,8 @@ public class ODataOperationsImpl implements ODataOperations {
 		imports.add(ImportMetadataBuilder.getImport(declaredByMetadataId, new JavaType("java.util.Map")));
 		imports.add(ImportMetadataBuilder.getImport(declaredByMetadataId, new JavaType("org.apache.olingo.odata2.api.edm.Edm")));
 		imports.add(ImportMetadataBuilder.getImport(declaredByMetadataId, new JavaType("org.springframework.beans.factory.annotation.Autowired")));
+		imports.add(ImportMetadataBuilder.getImport(declaredByMetadataId, new JavaType("org.apache.olingo.odata2.api.ep.entry.ODataEntry")));
+		
 		cidBuilder.addImports(imports);
 		
 		//Add @Service Annotation
@@ -333,7 +335,6 @@ public class ODataOperationsImpl implements ODataOperations {
 		// 1. Add Function Imports
 		final List<org.apache.olingo.odata2.api.edm.EdmFunctionImport> edmFunctions = edm.getFunctionImports();
 		for (org.apache.olingo.odata2.api.edm.EdmFunctionImport efi : edmFunctions) {
-			System.out.println("=====> generating function "+efi.getName());
 			
 			//initialize method builder
 			MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(
@@ -342,8 +343,11 @@ public class ODataOperationsImpl implements ODataOperations {
 			methodBuilder.setMethodName(new JavaSymbolName(efi.getName()));
 			
 			//method return type
+			//TODO: Tidy up the type code
 			JavaType returnType;
-			if (EdmTypeKind.SIMPLE.equals(
+			if (efi.getReturnType() == null) {
+				returnType = JavaType.VOID_PRIMITIVE;
+			} else if (efi.getReturnType().getType() != null && EdmTypeKind.SIMPLE.equals(
 					efi.getReturnType().getType().getKind())) {
 				EdmSimpleType stype = (EdmSimpleType)(efi.getReturnType().getType());
 				returnType = new JavaType(stype.getDefaultType().getName());
@@ -360,14 +364,31 @@ public class ODataOperationsImpl implements ODataOperations {
             bodyBuilder.appendFormalLine("Map<String, Object> params = new LinkedHashMap<String, Object>();");
             
             for (String paramName : efi.getParameterNames()) {
+            	
             	//add the parameter definition to the method builder
-            	methodBuilder.addParameter(paramName, new JavaType(efi.getParameter(paramName).getType().getName()));
+            	EdmSimpleType simpleParam;
+            	if (EdmTypeKind.SIMPLE.equals(efi.getParameter(paramName).getType().getKind())) { //If parameter is simple type
+            		simpleParam = (EdmSimpleType)efi.getParameter(paramName).getType();
+            		methodBuilder.addParameter(paramName, new JavaType(simpleParam.getDefaultType()));
+            	}
+            	else { //parameter is an Object
+            		methodBuilder.addParameter(paramName, new JavaType("java.lang.Object"));
+            	}
             	
             	//add code to insert the parameter value to the map
             	bodyBuilder.appendFormalLine("params.put(\"" + paramName + "\", " + paramName + ");");
             }
+            
+            String returnStmnt = "";
+            String castStmnt = "";
+            if (!returnType.equals(JavaType.VOID_PRIMITIVE)) { //The method has a return value
+            	returnStmnt = "return ";
+            	if (efi.getReturnType().getType().getKind().equals(EdmTypeKind.SIMPLE)) {
+            		castStmnt = "(" + returnType + ")";
+            	}
+            }
             bodyBuilder.newLine();
-            bodyBuilder.appendFormalLine("return serviceProvider.invokeFunction(edm.getDefaultEntityContainer().getFunctionImport(\"" +
+            bodyBuilder.appendFormalLine(returnStmnt + castStmnt + "serviceProvider.invokeFunction(edm.getDefaultEntityContainer().getFunctionImport(\"" +
             		efi.getName() +"\"), params);");
             
             methodBuilder.setBodyBuilder(bodyBuilder);
@@ -377,24 +398,26 @@ public class ODataOperationsImpl implements ODataOperations {
 		// 2. Add getters to entities
 		final List<EdmEntitySet> entitySets = edm.getDefaultEntityContainer().getEntitySets();
 		for (EdmEntitySet entitySet : entitySets) {
-			System.out.println("=====> generating feed "+entitySet.getName());
 			
 			//initialize method builder
 			MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(
 					declaredByMetadataId);
 			methodBuilder.setModifier(Modifier.PUBLIC);
-			methodBuilder.setMethodName(new JavaSymbolName("get"+entitySet.getName()+"List"));
+			methodBuilder.setMethodName(new JavaSymbolName("get"+generateJavaSymbolFromEdmName(entitySet.getName())+"List"));
 			
 			//set return method
-			List<ODataEntry> returnType = new ArrayList<ODataEntry>();
-			methodBuilder.setReturnType(new JavaType((Class<?>) returnType.getClass().getGenericSuperclass()));
+			final List<JavaType> returnTypeGenericParams = new ArrayList<JavaType>();
+			returnTypeGenericParams.add(new JavaType("ODataEntry"));
+	        JavaType returnType = new JavaType(List.class.getName(), 0,
+	                DataType.TYPE, null, returnTypeGenericParams);
+			methodBuilder.setReturnType(returnType);
 			
 			//method throws clause
 			methodBuilder.addThrowsType(new JavaType("java.lang.Exception"));
 			
 			//method body and parameters
             final InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
-            bodyBuilder.appendFormalLine("return serviceProvider.readFeed(edm, " + entitySet.getName() + ");");
+            bodyBuilder.appendFormalLine("return serviceProvider.readFeed(edm, \"" + entitySet.getName() + "\");");
             
             methodBuilder.setBodyBuilder(bodyBuilder);
             cidBuilder.addMethod(methodBuilder);
@@ -591,10 +614,15 @@ public class ODataOperationsImpl implements ODataOperations {
 		DomUtils.removeTextNodes(appContextXml);
 		fileManager.createOrUpdateTextFileIfRequired(configPath, XmlUtils.nodeToString(appContextXml), false);
 	}
+	
+
+	private String generateJavaSymbolFromEdmName(final String edmName) {
+		return edmName.replaceAll("[-_@<> %~\\/\\*\\!\\?\\^\\(\\)\\{\\}\\[\\]\\|\\'\\+]", "");
+	}
 
 
 	@Override
-	public void setupExternalService(String serviceBasePath, String username, String password) {
+	public void setupExternalService(final String serviceBasePath, final String username, final String password, final String serviceProxyName) {
 		
 		// Create the properties file
 		// TODO name of the file should not be hardcoded !!!
@@ -609,7 +637,6 @@ public class ODataOperationsImpl implements ODataOperations {
        
 		setupODataServiceApplicationContext();
 		
-		/****************** Remove Comment when roo dependency issue is resolved *****
 		//consume external service and generate service proxy
 		odataServiceProvider.getConnection().setUserName(username);
 		odataServiceProvider.getConnection().setPassword(password);
@@ -619,8 +646,8 @@ public class ODataOperationsImpl implements ODataOperations {
 			Edm edm = odataServiceProvider.readEdm();
 			
 			//find the name of the service
-			String serviceName = edm.getDefaultEntityContainer().getName();
-			System.out.println("==> generating proxy for service "+serviceName);
+			//TODO have the command set hte name because we do not have access to the schema name here
+			String serviceName = serviceProxyName != null ? serviceProxyName : edm.getDefaultEntityContainer().getName();
 			JavaType serviceBeanType = new JavaType(
 					projectOperations.getFocusedTopLevelPackage() + ".odata." + serviceName);
 			
@@ -630,7 +657,6 @@ public class ODataOperationsImpl implements ODataOperations {
 			e.printStackTrace();
 			throw new IllegalStateException("failed to consume the external service", e);
 		}
-		***************************************************************************************/
 	}
 
 

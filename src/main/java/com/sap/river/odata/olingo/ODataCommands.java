@@ -85,8 +85,9 @@ public class ODataCommands implements CommandMarker {
     public void setupOlingo(
     		@CliOption(key = "service", mandatory=true, help = "The service name in the URI") final String serviceBasePath,
     		@CliOption(key = "username", mandatory=true, help = "The username to access the service") final String username,
-    		@CliOption(key = "password", mandatory=true, help = "The password to access the service") final String password){
-    	operations.setupExternalService(serviceBasePath, username, password);
+    		@CliOption(key = "password", mandatory=true, help = "The password to access the service") final String password,
+    		@CliOption(key = "serviceProviderClassName", mandatory=false, help = "The name of the output service proxy class") final String serviceProxyName){
+    	operations.setupExternalService(serviceBasePath, username, password, serviceProxyName);
     }
     
 }
