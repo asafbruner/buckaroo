@@ -15,6 +15,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.olingo.odata2.api.edm.Edm;
 import org.apache.olingo.odata2.api.edm.EdmEntitySet;
+import org.apache.olingo.odata2.api.edm.EdmException;
 import org.apache.olingo.odata2.api.edm.EdmParameter;
 import org.springframework.roo.classpath.PhysicalTypeCategory;
 import org.springframework.roo.classpath.PhysicalTypeIdentifier;
@@ -103,6 +104,65 @@ public class ODataOperationsImpl implements ODataOperations {
 	//Auxiliary Functions
 	///////////////////////////////////////////
 		
+	private void createApplicationContextTest() {
+		
+		//The path of the new file to create or update
+		final String appContextTestXml = projectOperations.getPathResolver().
+				getFocusedIdentifier(Path.SRC_TEST_RESOURCES, "META-INF\\spring\\applicationContext-test.xml");
+		
+		//Take the content of the current applicationContext.xml
+		final String configPath = projectOperations.getPathResolver().
+				getFocusedIdentifier(Path.SPRING_CONFIG_ROOT, "/applicationContext.xml");
+		Document document = XmlUtils.readXml(fileManager.getInputStream(configPath));
+		Element appContextContent = document.getDocumentElement();
+		
+		fileManager.createOrUpdateTextFileIfRequired(appContextTestXml, XmlUtils.nodeToString(appContextContent), false);
+		
+		//TODO - Create a generic function with the following API:
+		//void removeElementFromXML(Element xmlElement, String xPath);
+		
+		//After creation of applicationContext-test.xml - need to remove redundant elements
+		Document documentTest = XmlUtils.readXml(fileManager.getInputStream(appContextTestXml));
+		Element appContextTestContent = documentTest.getDocumentElement();
+		Element configCXFImport = XmlUtils.findFirstElement(
+                "/beans/import[@resource = 'classpath:META-INF/cxf/cxf.xml']", appContextTestContent);
+		if (configCXFImport != null) {
+			configCXFImport.getParentNode().removeChild(configCXFImport);
+		}
+		
+		Element configCXFServletImport = XmlUtils.findFirstElement(
+                "/beans/import[@resource = 'classpath:META-INF/cxf/cxf-servlet.xml']", appContextTestContent);
+		if (configCXFServletImport != null) {
+			configCXFServletImport.getParentNode().removeChild(configCXFServletImport);
+		}
+		
+		Element configODataService = XmlUtils.findFirstElement(
+                "/beans/*[local-name()='server' and @address='/odata.svc']", appContextTestContent);
+		if (configODataService != null) {
+			configODataService.getParentNode().removeChild(configODataService);
+		}
+		
+		//Remove beans: --?????
+		Element configDefaultEDM = XmlUtils.findFirstElement(
+                "/beans/bean[@id = 'defaultEdm']", appContextTestContent);
+		if (configDefaultEDM != null) {
+			configDefaultEDM.getParentNode().removeChild(configDefaultEDM);
+		}
+		
+		Element configDataConnection = XmlUtils.findFirstElement(
+                "/beans/bean[@id = 'defaultODataConn']", appContextTestContent);
+		if (configDataConnection != null) {
+			configDataConnection.getParentNode().removeChild(configDataConnection);
+		}
+		
+		Element odataServiceProviderBean = XmlUtils.findFirstElement(
+                "/beans/bean[@id = 'odataServiceProvider']", appContextTestContent);
+		if (odataServiceProviderBean != null) {
+			odataServiceProviderBean.getParentNode().removeChild(odataServiceProviderBean);
+		}
+		
+	}
+
 	protected void updateServletConfiguration() {
 		
 		final String configPath = projectOperations.getPathResolver().
@@ -276,7 +336,6 @@ public class ODataOperationsImpl implements ODataOperations {
                 "/beans/*[local-name()='server' and @address='/odata.svc']", appContextXml);
 		if (configODataService != null) {
 			configODataService.getParentNode().removeChild(configODataService);
-			//appContextXml.removeChild(document.importNode(configODataService, true));
 		}
 		configODataService = XmlUtils.findFirstElement(CONFIGURATION_APP_CONFIG_BASE_PATH +
 		    "/serviceConfig/*", configuration);
@@ -601,7 +660,7 @@ public class ODataOperationsImpl implements ODataOperations {
 
 
 	@Override
-	public void setupExternalService(final String serviceBasePath, final String username, final String password, final String serviceProxyName) {
+	public void setupExternalService(final String serviceBasePath, final String username, final String password, final String serviceProxyName, final boolean isTestAutomatically) {
 		
 		// Create the properties file
 		// TODO name of the file should not be hardcoded !!!
@@ -612,7 +671,6 @@ public class ODataOperationsImpl implements ODataOperations {
 		createEdmFactory();
 		createConnectionBean();
 		createServiceProvider();
-		//
        
 		setupODataServiceApplicationContext();
 		
@@ -632,10 +690,56 @@ public class ODataOperationsImpl implements ODataOperations {
 			
 			createODataServiceProxyBean(serviceBeanType, edm);
 			
+			//If tests automatically is given - create the applicationContext-test.xml and the generated tests
+			if (isTestAutomatically) {
+				createApplicationContextTest();
+				createTests(edm);
+			}
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new IllegalStateException("failed to consume the external service", e);
 		}
+		
+		
+	}
+
+	private void createTests(Edm edm) throws EdmException {
+		
+		List<EdmEntitySet> entitySets = edm.getEntitySets();
+		
+		//Go over the list of entity sets and generate tests classes
+		for (EdmEntitySet entitySet : entitySets ) {
+			String entitySetToTest = entitySet.getName();
+			
+			//Node: classes generated for tests must end with *IT.java!
+			JavaType entitySetClassName = new JavaType(projectOperations.getFocusedTopLevelPackage() + ".odata." + entitySetToTest + "IT");
+			//String packageName = entitySetClassName.getFullyQualifiedTypeName().substring(0, entitySetClassName.getFullyQualifiedTypeName().lastIndexOf('.'));
+			
+			final String declaredByMetadataId = PhysicalTypeIdentifier.createIdentifier(entitySetClassName,
+							pathResolver.getFocusedPath(Path.SRC_MAIN_JAVA));
+			
+			final ClassOrInterfaceTypeDetailsBuilder cidBuilder = new ClassOrInterfaceTypeDetailsBuilder(
+					declaredByMetadataId, Modifier.PUBLIC, entitySetClassName,
+					PhysicalTypeCategory.CLASS);
+			
+			//Build Imports
+			//TODO missing imports!!!
+			final List<ImportMetadata> imports = new ArrayList<ImportMetadata>();
+			imports.add(ImportMetadataBuilder.getImport(declaredByMetadataId, new JavaType("org.junit.AfterClass")));
+			imports.add(ImportMetadataBuilder.getImport(declaredByMetadataId, new JavaType("org.junit.BeforeClass")));
+			imports.add(ImportMetadataBuilder.getImport(declaredByMetadataId, new JavaType("org.junit.Test")));
+			imports.add(ImportMetadataBuilder.getImport(declaredByMetadataId, new JavaType("org.junit.runner.RunWith")));
+			imports.add(ImportMetadataBuilder.getImport(declaredByMetadataId, new JavaType("org.springframework.beans.factory.annotation.Autowired")));
+			imports.add(ImportMetadataBuilder.getImport(declaredByMetadataId, new JavaType("org.springframework.test.context.ContextConfiguration")));
+			imports.add(ImportMetadataBuilder.getImport(declaredByMetadataId, new JavaType("org.springframework.test.context.junit4.SpringJUnit4ClassRunner")));
+			
+			cidBuilder.addImports(imports);
+			
+			//TODO - continue generation
+			typeManagementService.createOrUpdateTypeOnDisk(cidBuilder.build());
+		}
+				
 	}
 
 

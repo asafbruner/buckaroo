@@ -73,7 +73,7 @@ public class ODataCommands implements CommandMarker {
     @CliCommand(value = "odata setup", help = "setup the configuration for embedding Olingo OData provider")
     public void setupOlingo(
     		@CliOption(key = "service", mandatory=false, help = "The service name in the URI") final String serviceBasePath,
-    		@CliOption(key = "class", mandatory=true, help = "The name of the factory class") final JavaType factoryClassName) {
+    		@CliOption(key = "class", mandatory=true, help = "The name of the factory class") final JavaType factoryClassName){
     	operations.setupOlingo(factoryClassName, serviceBasePath);
     }
     
@@ -86,8 +86,9 @@ public class ODataCommands implements CommandMarker {
     		@CliOption(key = "service", mandatory=true, help = "The service name in the URI") final String serviceBasePath,
     		@CliOption(key = "username", mandatory=true, help = "The username to access the service") final String username,
     		@CliOption(key = "password", mandatory=true, help = "The password to access the service") final String password,
-    		@CliOption(key = "serviceProviderClassName", mandatory=false, help = "The name of the output service proxy class") final String serviceProxyName){
-    	operations.setupExternalService(serviceBasePath, username, password, serviceProxyName);
+    		@CliOption(key = "serviceProviderClassName", mandatory=false, help = "The name of the output service proxy class") final String serviceProxyName,
+    		@CliOption(key = "testAutomatically", mandatory=false, specifiedDefaultValue = "true", unspecifiedDefaultValue = "false", help = "Create automatic integration tests for entities") final boolean isTestAutomatically){
+    	operations.setupExternalService(serviceBasePath, username, password, serviceProxyName, isTestAutomatically);
     }
     
 }
