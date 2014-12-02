@@ -27,7 +27,10 @@ import org.springframework.roo.classpath.details.FieldMetadataBuilder;
 import org.springframework.roo.classpath.details.ImportMetadata;
 import org.springframework.roo.classpath.details.ImportMetadataBuilder;
 import org.springframework.roo.classpath.details.MethodMetadataBuilder;
+import org.springframework.roo.classpath.details.annotations.AnnotationAttributeValue;
 import org.springframework.roo.classpath.details.annotations.AnnotationMetadataBuilder;
+import org.springframework.roo.classpath.details.annotations.ClassAttributeValue;
+import org.springframework.roo.classpath.details.annotations.StringAttributeValue;
 import org.springframework.roo.classpath.itd.InvocableMemberBodyBuilder;
 import org.springframework.roo.model.JavaSymbolName;
 import org.springframework.roo.model.JavaType;
@@ -103,6 +106,52 @@ public class ODataOperationsImpl implements ODataOperations {
 	//Auxiliary Functions
 	///////////////////////////////////////////
 		
+	private void createApplicationContextTest() {
+		//The path of the new file to create or update
+		final String appContextTestXml = projectOperations.getPathResolver().
+				getFocusedIdentifier(Path.SRC_TEST_RESOURCES, "META-INF\\spring\\applicationContext-test.xml");
+		
+		//Take the content of the current applicationContext.xml
+		final String configPath = projectOperations.getPathResolver().
+				getFocusedIdentifier(Path.SPRING_CONFIG_ROOT, "/applicationContext.xml");
+		Document document = XmlUtils.readXml(fileManager.getInputStream(configPath));
+		Element appContextContent = document.getDocumentElement();
+		
+		fileManager.createOrUpdateTextFileIfRequired(appContextTestXml, XmlUtils.nodeToString(appContextContent), true);
+		
+		//After creation of applicationContext-test.xml - need to remove redundant elements
+		Document documentTest = XmlUtils.readXml(fileManager.getInputStream(appContextTestXml));
+		Element appContextTestContent = documentTest.getDocumentElement();
+		
+		com.sap.river.util.XMLUtils.removeElementFromXML(appContextTestContent, "/beans/import[@resource = 'classpath:META-INF/cxf/cxf.xml']");
+		com.sap.river.util.XMLUtils.removeElementFromXML(appContextTestContent, "/beans/import[@resource = 'classpath:META-INF/cxf/cxf-servlet.xml']");
+		com.sap.river.util.XMLUtils.removeElementFromXML(appContextTestContent, "/beans/*[local-name()='server' and @address='/odata.svc']");
+		com.sap.river.util.XMLUtils.removeElementFromXML(appContextTestContent, "/beans/*[local-name()='annotation-driven' and @mode='aspectj']");
+		
+		com.sap.river.util.XMLUtils.removeElementFromXML(appContextTestContent, "/beans/bean[@id='dataSource']");
+		com.sap.river.util.XMLUtils.removeElementFromXML(appContextTestContent, "/beans/bean[@id='transactionManager']");
+		com.sap.river.util.XMLUtils.removeElementFromXML(appContextTestContent, "/beans/bean[@id='entityManagerFactory']");
+		
+		//add component-scan filter to filter out OData components that depends on JPA
+		final Element configuration = XmlUtils.getConfiguration(DeployCommands.class);
+		
+		Element autoScanElement = XmlUtils.findFirstElement(
+                "/beans/*[local-name()='component-scan']", appContextTestContent);
+		Element excludeFilter = XmlUtils.findFirstElement(
+			                        "*[local-name()='exclude-filter' and @regex='.*Factory.*']", 
+			                        autoScanElement);
+		if (excludeFilter != null) {
+			excludeFilter.getParentNode().removeChild(excludeFilter);
+		}
+				
+		excludeFilter = XmlUtils.findFirstElement(CONFIGURATION_APP_CONFIG_BASE_PATH +
+		                "/component-scan/*[local-name()='exclude-filter']", configuration);
+		Node excludeFilterNode = autoScanElement.getOwnerDocument().importNode(excludeFilter, true);
+		autoScanElement.appendChild(excludeFilterNode);
+		
+		fileManager.createOrUpdateTextFileIfRequired(appContextTestXml, XmlUtils.nodeToString(appContextTestContent), true);
+	}
+
 	protected void updateServletConfiguration() {
 		
 		final String configPath = projectOperations.getPathResolver().
@@ -253,7 +302,6 @@ public class ODataOperationsImpl implements ODataOperations {
 	                        "/beans/import[@resource = 'classpath:META-INF/cxf/cxf.xml']", appContextXml);
 		if (configCXFImport != null) {
 			configCXFImport.getParentNode().removeChild(configCXFImport);
-			//appContextXml.removeChild(document.importNode(configCXFImport, true));
 		}
 		configCXFImport = XmlUtils.findFirstElement(CONFIGURATION_APP_CONFIG_BASE_PATH +
                 "/imports/import[@resource = 'classpath:META-INF/cxf/cxf.xml']", configuration);
@@ -264,7 +312,6 @@ public class ODataOperationsImpl implements ODataOperations {
                 "/beans/import[@resource = 'classpath:META-INF/cxf/cxf-servlet.xml']", appContextXml);
 		if (configCXFServletImport != null) {
 			configCXFServletImport.getParentNode().removeChild(configCXFServletImport);
-			//appContextXml.removeChild(document.importNode(configCXFServletImport, true));
 		}
 		configCXFServletImport = XmlUtils.findFirstElement(CONFIGURATION_APP_CONFIG_BASE_PATH +
 		    "/imports/import[@resource = 'classpath:META-INF/cxf/cxf-servlet.xml']", configuration);
@@ -276,7 +323,6 @@ public class ODataOperationsImpl implements ODataOperations {
                 "/beans/*[local-name()='server' and @address='/odata.svc']", appContextXml);
 		if (configODataService != null) {
 			configODataService.getParentNode().removeChild(configODataService);
-			//appContextXml.removeChild(document.importNode(configODataService, true));
 		}
 		configODataService = XmlUtils.findFirstElement(CONFIGURATION_APP_CONFIG_BASE_PATH +
 		    "/serviceConfig/*", configuration);
@@ -310,6 +356,7 @@ public class ODataOperationsImpl implements ODataOperations {
 		
 		//Add @Service Annotation
 		final List<AnnotationMetadataBuilder> annotationBuilder = new ArrayList<AnnotationMetadataBuilder>();
+		annotationBuilder.add(new AnnotationMetadataBuilder(SpringJavaType.COMPONENT));
 		annotationBuilder.add(new AnnotationMetadataBuilder(SpringJavaType.SERVICE));
 		cidBuilder.setAnnotations(annotationBuilder);
 		
@@ -408,6 +455,84 @@ public class ODataOperationsImpl implements ODataOperations {
 		
 		typeManagementService.createOrUpdateTypeOnDisk(cidBuilder.build());
 	}
+	
+	protected void createODataServiceProxyTestBean(JavaType serviceClass, Edm edm) throws Exception {
+		
+		JavaType serviceTestClass = new JavaType(serviceClass.getFullyQualifiedTypeName() + "Test");
+		final String declaredByMetadataId = PhysicalTypeIdentifier
+				.createIdentifier(serviceTestClass,
+						pathResolver.getFocusedPath(Path.SRC_TEST_JAVA));
+		final ClassOrInterfaceTypeDetailsBuilder cidBuilder = new ClassOrInterfaceTypeDetailsBuilder(
+				declaredByMetadataId, Modifier.PUBLIC, serviceTestClass,
+				PhysicalTypeCategory.CLASS);
+		
+		//Build Imports
+		final List<ImportMetadata> imports = new ArrayList<ImportMetadata>();
+		imports.add(ImportMetadataBuilder.getImport(declaredByMetadataId, new JavaType("java.lang.Exception")));
+		imports.add(ImportMetadataBuilder.getImport(declaredByMetadataId, new JavaType("java.util.List")));
+		imports.add(ImportMetadataBuilder.getImport(declaredByMetadataId, new JavaType("org.junit.Assert")));
+		imports.add(ImportMetadataBuilder.getImport(declaredByMetadataId, new JavaType("org.junit.runner.RunWith")));
+		imports.add(ImportMetadataBuilder.getImport(declaredByMetadataId, new JavaType("org.springframework.test.context.ContextConfiguration")));
+		imports.add(ImportMetadataBuilder.getImport(declaredByMetadataId, new JavaType("org.springframework.test.context.junit4.SpringJUnit4ClassRunner")));
+		imports.add(ImportMetadataBuilder.getImport(declaredByMetadataId, new JavaType("org.springframework.beans.factory.annotation.Autowired")));
+		imports.add(ImportMetadataBuilder.getImport(declaredByMetadataId, new JavaType("org.apache.olingo.odata2.api.edm.Edm")));
+		imports.add(ImportMetadataBuilder.getImport(declaredByMetadataId, new JavaType("org.apache.olingo.odata2.api.ep.entry.ODataEntry")));
+		cidBuilder.addImports(imports);
+		
+		//Add @RunWith Annotation
+		final List<AnnotationMetadataBuilder> annotationBuilder = new ArrayList<AnnotationMetadataBuilder>();
+		final List<AnnotationAttributeValue<?>> runWithAttributes = new ArrayList<AnnotationAttributeValue<?>>();
+		runWithAttributes.add(new ClassAttributeValue(new JavaSymbolName("value"), new JavaType("org.springframework.test.context.junit4.SpringJUnit4ClassRunner")));
+		annotationBuilder.add(new AnnotationMetadataBuilder(new JavaType("org.junit.runner.RunWith"), runWithAttributes));
+		
+		//Add @ContextConfiguration Annotation
+		final List<AnnotationAttributeValue<?>> ctxCfgAttributes = new ArrayList<AnnotationAttributeValue<?>>();
+		ctxCfgAttributes.add(new StringAttributeValue(new JavaSymbolName("locations"), "classpath*:META-INF/spring/applicationContext-test.xml"));
+		annotationBuilder.add(new AnnotationMetadataBuilder(new JavaType("org.springframework.test.context.ContextConfiguration"), ctxCfgAttributes));
+		
+		cidBuilder.setAnnotations(annotationBuilder);
+		
+		final List<FieldMetadataBuilder> fields = new ArrayList<FieldMetadataBuilder>();
+		
+		//Add @Autowired test fixture
+		FieldMetadataBuilder svc = new FieldMetadataBuilder(
+				declaredByMetadataId, Modifier.PROTECTED, 
+				new JavaSymbolName("svc"), serviceClass, null);
+		svc.addAnnotation(new AnnotationMetadataBuilder(SpringJavaType.AUTOWIRED));
+		fields.add(svc);
+		
+		cidBuilder.setDeclaredFields(fields);
+		
+		//define @Test Annotation
+		AnnotationMetadataBuilder testAnnotation = new AnnotationMetadataBuilder(new JavaType("org.junit.Test"));
+		
+		final List<EdmEntitySet> entitySets = edm.getDefaultEntityContainer().getEntitySets();
+		for (EdmEntitySet entitySet : entitySets) {
+			
+			//initialize method builder
+			MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(
+					declaredByMetadataId);
+			methodBuilder.setModifier(Modifier.PUBLIC);
+			methodBuilder.setMethodName(new JavaSymbolName("testGet"+generateJavaSymbolFromEdmName(entitySet.getName())+"List"));
+			
+			//set return method
+			methodBuilder.setReturnType(JavaType.VOID_PRIMITIVE);
+			
+			//method throws clause
+			methodBuilder.addThrowsType(new JavaType("java.lang.Exception"));
+			
+			methodBuilder.addAnnotation(testAnnotation);
+			
+			//method body and parameters
+            final InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+            bodyBuilder.appendFormalLine("Assert.assertTrue(true);");
+            
+            methodBuilder.setBodyBuilder(bodyBuilder);
+            cidBuilder.addMethod(methodBuilder);
+		}
+		
+		typeManagementService.createOrUpdateTypeOnDisk(cidBuilder.build());
+	}
 
 
 	/**
@@ -462,9 +587,9 @@ public class ODataOperationsImpl implements ODataOperations {
 	
 	}
 	
-	protected String getPropertiesPath(String resourcePath) {
+	protected String getPropertiesPath(String resourcePath, boolean forTests) {
 		final String propertiesPath = pathResolver
-				.getFocusedIdentifier(Path.SRC_MAIN_RESOURCES, resourcePath);
+				.getFocusedIdentifier(forTests ? Path.SRC_TEST_RESOURCES : Path.SRC_MAIN_RESOURCES, resourcePath);
 		final boolean propertiesPathExists = fileManager
 				.exists(propertiesPath);
 
@@ -479,9 +604,9 @@ public class ODataOperationsImpl implements ODataOperations {
 		return propertiesPath;
 	}
 
-	protected void createClientPropertiesFile(String serviceBasePath, String username, String password) {
+	protected void createClientPropertiesFile(String serviceBasePath, String username, String password, boolean forTests) {
 		final String externalServicePropertiesPath = getPropertiesPath(
-				"META-INF\\spring\\" + ODATA_SERVICE_PROPERTIES_FILE);
+				"META-INF\\spring\\" + ODATA_SERVICE_PROPERTIES_FILE, forTests);
 		
 		//TODO this code replaces any already existed client properties file with the following.
 		//Should consider merging!
@@ -601,18 +726,17 @@ public class ODataOperationsImpl implements ODataOperations {
 
 
 	@Override
-	public void setupExternalService(final String serviceBasePath, final String username, final String password, final String serviceProxyName) {
+	public void setupExternalService(final String serviceBasePath, final String username, final String password, final String serviceProxyName, final boolean isTestAutomatically) {
 		
 		// Create the properties file
 		// TODO name of the file should not be hardcoded !!!
-		createClientPropertiesFile(serviceBasePath, username, password);
+		createClientPropertiesFile(serviceBasePath, username, password, false);
 		
 		//Create some infrastructure beans that allow the users to plug odata service
 		//consumption support into their application
 		createEdmFactory();
 		createConnectionBean();
 		createServiceProvider();
-		//
        
 		setupODataServiceApplicationContext();
 		
@@ -632,11 +756,18 @@ public class ODataOperationsImpl implements ODataOperations {
 			
 			createODataServiceProxyBean(serviceBeanType, edm);
 			
+			//If tests automatically is given - create the applicationContext-test.xml and the generated tests
+			if (isTestAutomatically) {
+				createClientPropertiesFile(serviceBasePath, username, password, true);
+				createApplicationContextTest();
+				createODataServiceProxyTestBean(serviceBeanType, edm);
+			}
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new IllegalStateException("failed to consume the external service", e);
 		}
+		
+		
 	}
-
-
 }

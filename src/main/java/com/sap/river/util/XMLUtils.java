@@ -14,6 +14,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.springframework.roo.support.util.XmlUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -31,8 +32,13 @@ public class XMLUtils {
 	private static final String ACTIVEBYDEFAULT_VAL = "false";
 	private static final String BUILD_NAME = "build";
 	private static final String PLUGINS_NAME = "plugins";
-	private static final String PLUGIN_NAME = "plugin";
 	
+	public static void removeElementFromXML(Element xmlElement, String xPath) {
+		Element element = XmlUtils.findFirstElement(xPath, xmlElement);
+		if (element != null) {
+			element.getParentNode().removeChild(element);
+		}
+	}
 	/**
 	 * return the root element of the POM
 	 */

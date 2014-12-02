@@ -271,6 +271,9 @@
 				<serviceConfig>
 					<odata:server address="/odata.svc" factory="jpaServiceFactory" id="jparoolingo"/>
 				</serviceConfig>
+				<component-scan>
+				    <context:exclude-filter type="regex" expression=".*Factory.*"/>
+				</component-scan>
 			</appContextConfig>
 		</olingo>
 	</river>
