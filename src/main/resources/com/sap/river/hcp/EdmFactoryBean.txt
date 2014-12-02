@@ -6,7 +6,7 @@ public class EdmFactoryBean implements FactoryBean<Edm> {
 
 
 	@Autowired
-	private ServiceProvider serviceProvider;
+	private ODataServiceProvider serviceProvider;
 
 	@Override
 	public Edm getObject() throws Exception {
