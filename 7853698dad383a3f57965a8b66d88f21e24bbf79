@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_8e0a8cd0",
+        "filename": "src/main/java/com/sap/river/odata/ODataOperationsImpl.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-12-03T07:56:11Z",
+      "side": 1,
+      "message": "This way of creating the testApplicationContext is a bit problematic. If we add a new bean to the applicationContext we need to add a line here that removes it. Please reconsider implementation.",
+      "range": {
+        "startLine": 109,
+        "startChar": 14,
+        "endLine": 109,
+        "endChar": 42
+      },
+      "revId": "7853698dad383a3f57965a8b66d88f21e24bbf79",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_ce1494f7",
+        "filename": "src/main/java/com/sap/river/odata/ODataOperationsImpl.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 357,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-12-03T07:56:11Z",
+      "side": 1,
+      "message": "and component",
+      "range": {
+        "startLine": 357,
+        "startChar": 9,
+        "endLine": 357,
+        "endChar": 16
+      },
+      "revId": "7853698dad383a3f57965a8b66d88f21e24bbf79",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_2ef9e0c8",
+        "filename": "src/main/java/com/sap/river/odata/ODataOperationsImpl.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 528,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-12-03T07:56:11Z",
+      "side": 1,
+      "message": "I guess this is a temporary test, what do we want to test in the future?",
+      "range": {
+        "startLine": 528,
+        "startChar": 42,
+        "endLine": 528,
+        "endChar": 65
+      },
+      "revId": "7853698dad383a3f57965a8b66d88f21e24bbf79",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
