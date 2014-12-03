@@ -1,14 +1,23 @@
 package com.sap.river.hcp;
 
 import java.io.IOException;
-import java.util.logging.Logger;
+//import java.util.logging.Logger;
+
+
+
+
+
+
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.springframework.roo.process.manager.FileManager;
+import org.springframework.roo.project.DependencyScope;
 import org.springframework.roo.project.MavenOperations;
+import org.springframework.roo.project.Path;
 import org.springframework.roo.project.ProjectOperations;
 import org.springframework.roo.project.maven.Pom;
 import org.springframework.roo.support.util.XmlUtils;
@@ -20,8 +29,10 @@ import com.sap.river.util.PomUtils;
 @Service
 public class DeployOperationsImpl implements DeployOperations {
 
-	private static Logger LOGGER = Logger.getLogger(DeployOperationsImpl.class
-			.getName());
+// TODO - used logs
+//	private static Logger LOGGER = Logger.getLogger(DeployOperationsImpl.class
+//			.getName());
+	@Reference private FileManager fileManager;
 
 	private final String SAP_CLOUD_HOST_PROP = "sap.cloud.host";
 	private final String SAP_CLOUD_ACCOUNT_PROP = "sap.cloud.account";
@@ -46,6 +57,7 @@ public class DeployOperationsImpl implements DeployOperations {
 	private static final String NEO_PLUGIN_DEPLOY_LOCAL = "deploy-local";
 	private static final String NEO_PLUGIN_START_LOCAL = "start-local";
 
+	private static final String LOG4J_PROPERTIES = "log4j.properties";
 	/** river specific details in the project setup files (such as pom.xml etc.) */
 	@Reference
 	private ProjectOperations projectOperations;
@@ -101,6 +113,40 @@ public class DeployOperationsImpl implements DeployOperations {
         PomUtils.updateInputRemoteProperties(projectOperations, moduleName, host, account, userName, password, SAP_CLOUD_HOST_PROP, SAP_CLOUD_ACCOUNT_PROP, 
         		SAP_CLOUD_USERNAME_PROP, SAP_CLOUD_PASSWORD_PROP);
         
+        supportRemoteLogger(projectOperations, moduleName);
+	}
+
+	/**
+	 * To avoid conflicts with the HCP side logging implementation, all logging dependencies have to be discarded.
+	 *
+	 * Organize the slf4j dependencies in a deploy-able manner:
+	 * 1. Remove unnecessary dependencies + log4j.properties
+	 * 2. Set "slf4j-api" scope to be "provided" (i.e. provided by the framework")
+	 * 3. Add exclusion of the jcl-pver-slf4j to dependent modules.
+	 * 4. Remove the log4j.properties
+	 *
+	 *
+	 * TODO - use the correct method
+	 * Method : direct to test scope + create tests folder + move log4j.properties to the tests\resources folder
+	 * Get dependent modules programmatically
+	 *
+	 */
+	private void supportRemoteLogger(ProjectOperations projectOperations, String moduleName) {
+		PomUtils.setDependencyScope(projectOperations,moduleName, "org.slf4j", "slf4j-api", DependencyScope.PROVIDED);
+		PomUtils.removeDependency(projectOperations,moduleName, "log4j", "log4j");
+		PomUtils.removeDependency(projectOperations, moduleName, "org.slf4j", "jcl-over-slf4j");
+		PomUtils.removeDependency(projectOperations, moduleName, "org.slf4j", "slf4j-log4j12");
+		PomUtils.removeDependency(projectOperations, moduleName, "commons-pool", "commons-pool");
+		PomUtils.removeDependency(projectOperations, moduleName, "commons-dbcp", "commons-dbcp");
+		PomUtils.excludeDependency(projectOperations, moduleName, "org.apache.tiles", "tiles-jsp", "org.slf4j", "jcl-over-slf4j");
+
+		final String log4jPropsPath = projectOperations.getPathResolver()
+                .getFocusedIdentifier(Path.SRC_MAIN_RESOURCES, LOG4J_PROPERTIES);
+
+        if (fileManager.exists(log4jPropsPath)) {
+			fileManager.delete(log4jPropsPath);
+        }
+
 	}
 
 	@Override

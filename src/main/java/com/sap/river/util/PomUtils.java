@@ -2,10 +2,13 @@ package com.sap.river.util;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
+//import java.util.logging.Logger;
+
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.roo.project.Dependency;
+import org.springframework.roo.project.DependencyScope;
 import org.springframework.roo.project.Plugin;
 import org.springframework.roo.project.ProjectOperations;
 import org.springframework.roo.project.Property;
@@ -15,7 +18,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 public class PomUtils {
-	private static Logger LOGGER = Logger.getLogger(PomUtils.class.getName());	
+//	private static Logger LOGGER = Logger.getLogger(PomUtils.class.getName());	
 
 	// ////////////////////////////////////////////Plugins//////////////////////////////
 
@@ -76,6 +79,78 @@ public class PomUtils {
 	}
 
 	// ////////////////////////////////////////////Dependencies//////////////////////////////
+
+/**
+ * Disable a dependency identified by it's groupId and artifactId.
+ * Currently - remove the dependency.
+ * 
+ * @param projectOperations
+ * @param moduleName
+ * @param groupId
+ * @param artifactId
+ */
+	public static void removeDependency(ProjectOperations projectOperations, String moduleName, String groupId, String artifactId) {
+		Dependency dep = getDependency(projectOperations, groupId, artifactId);
+		if (dep != null) {
+			projectOperations.removeDependency(moduleName, dep);
+		}
+	}
+
+/**
+ * Set the scope of a dependency identified by it's groupId and artifactId.
+
+ * @param projectOperations
+ * @param moduleName
+ * @param groupId
+ * @param artifactId
+ * @param scope
+ */
+	public static void setDependencyScope(ProjectOperations projectOperations, String moduleName, String groupId, String artifactId, DependencyScope scope) {
+		Dependency dep = getDependency(projectOperations, groupId, artifactId);
+		if (dep != null) {
+			projectOperations.updateDependencyScope(moduleName, dep, scope);
+		}
+	}
+
+/**
+ * Add an exclusion of a dependency identified by it's groupId and artifactId.
+ * 	
+ * @param projectOperations
+ * @param moduleName
+ * @param groupId
+ * @param artifactId
+ * @param exGroupId
+ * @param exArtifactId
+ */
+	public static void excludeDependency(ProjectOperations projectOperations, String moduleName, String groupId, String artifactId, String exGroupId, String exArtifactId) {
+		Dependency dep = getDependency(projectOperations, groupId, artifactId);
+		if (dep != null) {
+			dep.addExclusion(exGroupId, exArtifactId);
+			// TODO - fix a roo bug - addDependency does not support an update and projectOperations.removeDependency does not clean the set
+			projectOperations.getPomFromModuleName(moduleName).getDependencies().remove(dep);  
+			projectOperations.addDependency(moduleName, dep);
+		}
+	}
+
+/**
+ * TODO - consider returning a collection of dependencies with these id's.
+ * @param projectOperations
+ * @param groupId
+ * @param artifactId
+ * @return
+ */
+	private static Dependency getDependency(ProjectOperations projectOperations, String groupId, String artifactId) {
+		final Set<Dependency> dependencies = projectOperations.getFocusedModule().getDependencies();
+
+		for (final Dependency dependency : dependencies) {
+			String gId = dependency.getGroupId();
+			String aId = dependency.getArtifactId();
+			if (gId.equals(groupId) && aId.equals(artifactId)) {
+				return dependency;
+			}
+        }
+		return null;
+	}
 
 	// generate dependency list based on this configuration
 	private static List<Dependency> generateDependencies(String dependencyPath,
