@@ -16,5 +16,7 @@ public class JpaSetupOperationsImpl implements JpaSetupOperations {
 	@Override
 	public void run() {
 		shell.executeCommand("jpa setup --provider ECLIPSELINK --database HYPERSONIC_IN_MEMORY");
+		shell.executeCommand("web mvc setup");
+		shell.executeCommand("hcp setup remote-persistence --database HANA");
 	}
 }
