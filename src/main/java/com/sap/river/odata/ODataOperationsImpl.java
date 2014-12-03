@@ -15,6 +15,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.olingo.odata2.api.edm.Edm;
 import org.apache.olingo.odata2.api.edm.EdmEntitySet;
+import org.apache.olingo.odata2.api.edm.EdmException;
 import org.apache.olingo.odata2.api.edm.EdmParameter;
 import org.springframework.roo.classpath.PhysicalTypeCategory;
 import org.springframework.roo.classpath.PhysicalTypeIdentifier;
@@ -27,6 +28,7 @@ import org.springframework.roo.classpath.details.FieldMetadataBuilder;
 import org.springframework.roo.classpath.details.ImportMetadata;
 import org.springframework.roo.classpath.details.ImportMetadataBuilder;
 import org.springframework.roo.classpath.details.MethodMetadataBuilder;
+import org.springframework.roo.classpath.details.annotations.AnnotatedJavaType;
 import org.springframework.roo.classpath.details.annotations.AnnotationAttributeValue;
 import org.springframework.roo.classpath.details.annotations.AnnotationMetadataBuilder;
 import org.springframework.roo.classpath.details.annotations.ClassAttributeValue;
@@ -475,7 +477,6 @@ public class ODataOperationsImpl implements ODataOperations {
 		imports.add(ImportMetadataBuilder.getImport(declaredByMetadataId, new JavaType("org.springframework.test.context.ContextConfiguration")));
 		imports.add(ImportMetadataBuilder.getImport(declaredByMetadataId, new JavaType("org.springframework.test.context.junit4.SpringJUnit4ClassRunner")));
 		imports.add(ImportMetadataBuilder.getImport(declaredByMetadataId, new JavaType("org.springframework.beans.factory.annotation.Autowired")));
-		imports.add(ImportMetadataBuilder.getImport(declaredByMetadataId, new JavaType("org.apache.olingo.odata2.api.edm.Edm")));
 		imports.add(ImportMetadataBuilder.getImport(declaredByMetadataId, new JavaType("org.apache.olingo.odata2.api.ep.entry.ODataEntry")));
 		cidBuilder.addImports(imports);
 		
@@ -513,7 +514,7 @@ public class ODataOperationsImpl implements ODataOperations {
 			MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(
 					declaredByMetadataId);
 			methodBuilder.setModifier(Modifier.PUBLIC);
-			methodBuilder.setMethodName(new JavaSymbolName("testGet"+generateJavaSymbolFromEdmName(entitySet.getName())+"List"));
+			methodBuilder.setMethodName(new JavaSymbolName("test" + "Get"+generateJavaSymbolFromEdmName(entitySet.getName())+"List"));
 			
 			//set return method
 			methodBuilder.setReturnType(JavaType.VOID_PRIMITIVE);
@@ -525,13 +526,32 @@ public class ODataOperationsImpl implements ODataOperations {
 			
 			//method body and parameters
             final InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
-            bodyBuilder.appendFormalLine("Assert.assertTrue(true);");
+            buildODataTestBody(entitySet, bodyBuilder);
             
             methodBuilder.setBodyBuilder(bodyBuilder);
             cidBuilder.addMethod(methodBuilder);
 		}
 		
+		//add utility function to print results (TEMPORARY)
+		MethodMetadataBuilder printMethodBuilder = createPrintUtilForTestBean(declaredByMetadataId);
+		cidBuilder.addMethod(printMethodBuilder);
+		
 		typeManagementService.createOrUpdateTypeOnDisk(cidBuilder.build());
+	}
+
+	private void buildODataTestBody(EdmEntitySet entitySet,
+			final InvocableMemberBodyBuilder bodyBuilder) throws EdmException {
+		bodyBuilder.appendFormalLine("List<ODataEntry> feed = null;");
+		bodyBuilder.appendFormalLine("try {");
+		bodyBuilder.indent();
+		bodyBuilder.appendFormalLine("feed = svc." + "get" + generateJavaSymbolFromEdmName(entitySet.getName())+"List"+"();");
+		bodyBuilder.indentRemove();
+		bodyBuilder.appendFormalLine("} catch(Exception ex) {");
+		bodyBuilder.indent();
+		bodyBuilder.appendFormalLine("Assert.fail(\"test failed with cause: \"+ex.getMessage());");
+		bodyBuilder.indentRemove();
+		bodyBuilder.appendFormalLine("}");
+		bodyBuilder.appendFormalLine("printFeed(feed);");
 	}
 
 
@@ -769,5 +789,33 @@ public class ODataOperationsImpl implements ODataOperations {
 		}
 		
 		
+	}
+	
+	private MethodMetadataBuilder createPrintUtilForTestBean(String declaredByMetadataId) {
+		//create utility function
+		MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(
+				declaredByMetadataId);
+		methodBuilder.setModifier(Modifier.PRIVATE);
+		methodBuilder.setMethodName(new JavaSymbolName("printFeed"));
+		
+		//create feed parameter (List<ODataEntry>) for the function
+		List<JavaSymbolName> feedParamName = new ArrayList<JavaSymbolName>();
+		feedParamName.add(new JavaSymbolName("feed"));
+		methodBuilder.setParameterNames(feedParamName);
+		List<AnnotatedJavaType> feedParamType = new ArrayList<AnnotatedJavaType>();
+		feedParamType.add(AnnotatedJavaType.convertFromJavaType(edmParsingService.getFeedReturnType()));
+		methodBuilder.setParameterTypes(feedParamType);
+		
+		//set return method
+		methodBuilder.setReturnType(JavaType.VOID_PRIMITIVE);
+		
+		//method body
+        final InvocableMemberBodyBuilder bodyBuilder = new InvocableMemberBodyBuilder();
+        bodyBuilder.appendFormalLine("for (ODataEntry entry : feed) {\n" +
+			"Assert.assertNotNull(entry.getProperties());\n" +
+			"System.out.println((new StringBuilder(\"Entry: \")).append(entry.getMetadata().getUri()).toString());\n" +
+		"}\n");
+        methodBuilder.setBodyBuilder(bodyBuilder);
+        return methodBuilder;
 	}
 }
