@@ -7,7 +7,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.component.ComponentContext;
 import org.springframework.roo.shell.CliAvailabilityIndicator;
 import org.springframework.roo.shell.CliCommand;
-import org.springframework.roo.shell.CliOption;
+//import org.springframework.roo.shell.CliOption;
 import org.springframework.roo.shell.CommandMarker;
 
 /**
