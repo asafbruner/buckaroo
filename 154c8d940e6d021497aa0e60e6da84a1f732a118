@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_6ef2c89b",
+        "filename": "src/main/java/com/sap/river/hcp/WebAppCommands.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1002883
+      },
+      "writtenOn": "2014-12-03T12:41:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_0ec7bc46",
+      "revId": "154c8d940e6d021497aa0e60e6da84a1f732a118",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_ae04b07e",
         "filename": "src/main/java/com/sap/river/util/PomUtils.java",
         "patchSetId": 1
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_4eef04b1",
+        "filename": "src/main/java/com/sap/river/util/PomUtils.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002883
+      },
+      "writtenOn": "2014-12-03T12:41:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_ae04b07e",
+      "revId": "154c8d940e6d021497aa0e60e6da84a1f732a118",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_ceec94ca",
         "filename": "src/main/java/com/sap/river/util/PomUtils.java",
         "patchSetId": 1
@@ -47,6 +83,24 @@
       "writtenOn": "2014-12-03T12:02:26Z",
       "side": 1,
       "message": "1) is a case-sensitive check good enough?\n2) Version is not necessary?",
+      "revId": "154c8d940e6d021497aa0e60e6da84a1f732a118",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_0e3cdc2e",
+        "filename": "src/main/java/com/sap/river/util/PomUtils.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1002883
+      },
+      "writtenOn": "2014-12-03T12:41:07Z",
+      "side": 1,
+      "message": "Version is not necessary.\nHowever, there might be a room for handling multiple dependencies with these id\u0027s, but not sure if relevant for our needs.\nAdded a TODO in the code.",
+      "parentUuid": "fafc7978_ceec94ca",
       "revId": "154c8d940e6d021497aa0e60e6da84a1f732a118",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
