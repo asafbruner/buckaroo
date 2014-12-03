@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_0ec7bc46",
+        "filename": "src/main/java/com/sap/river/hcp/WebAppCommands.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1002923
+      },
+      "writtenOn": "2014-12-03T12:02:26Z",
+      "side": 1,
+      "message": "can we get rid of this?",
+      "revId": "154c8d940e6d021497aa0e60e6da84a1f732a118",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_ceec94ca",
+        "filename": "src/main/java/com/sap/river/util/PomUtils.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1002923
+      },
+      "writtenOn": "2014-12-03T12:02:26Z",
+      "side": 1,
+      "message": "1) is a case-sensitive check good enough?\n2) Version is not necessary?",
+      "revId": "154c8d940e6d021497aa0e60e6da84a1f732a118",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
