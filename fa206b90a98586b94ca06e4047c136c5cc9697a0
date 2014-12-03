@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_4ec1c42d",
+        "filename": "src/main/resources/com/sap/river/hcp/ODataConnectionBean.txt",
+        "patchSetId": 2
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002914
+      },
+      "writtenOn": "2014-12-03T11:58:16Z",
+      "side": 1,
+      "message": "Can we have an option to config from the command line?",
+      "revId": "fa206b90a98586b94ca06e4047c136c5cc9697a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
