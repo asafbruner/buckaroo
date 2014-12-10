@@ -2,11 +2,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.sap.river</groupId>
-	<artifactId>com.sap.river</artifactId>
+	<groupId>com.sap.buckaroo</groupId>
+	<artifactId>com.sap.buckaroo</artifactId>
 	<packaging>bundle</packaging>
 	<version>0.1.0.BUILD-SNAPSHOT</version>
-	<name>com-sap-river</name>
+	<name>com-sap-buckaroo</name>
 	<organization>
 		<name>Your project/company name goes here (used in copyright and vendor information in the manifest)</name>
 	</organization>
@@ -23,7 +23,7 @@
 		<roo.version>1.2.5.RELEASE</roo.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<google.code.project.name>${project.name}</google.code.project.name>
-		<repo.folder>com/sap/river</repo.folder>
+		<repo.folder>com/sap/buckaroo</repo.folder>
 		<olingo.version>2.0.1</olingo.version>
 	</properties>
 	<repositories>

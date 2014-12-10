@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<configuration>
+	<buckaroo>
+		<deploy>
+			<properties>
+				<sap.cloud.sdk.version>1.64.15</sap.cloud.sdk.version>
+				<sap.cloud.host>neo.ondemand.com</sap.cloud.host>
+				<sap.cloud.application>${project.artifactId}</sap.cloud.application>
+				<sap.cloud.sdk.config.proxy.host>proxy
+				</sap.cloud.sdk.config.proxy.host>
+				<sap.cloud.sdk.config.proxy.port>8080
+				</sap.cloud.sdk.config.proxy.port>
+			</properties>
+			<dependencies>
+				<dependency>
+					<!-- neo cloud plugin -->
+					<groupId>com.sap.cloud</groupId>
+					<artifactId>neo-java-web-maven-plugin</artifactId>
+					<version>${sap.cloud.sdk.version}</version>
+					<scope>provided</scope>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>com.sap.cloud</groupId>
+						<artifactId>neo-java-web-maven-plugin</artifactId>
+						<version>${sap.cloud.sdk.version}</version>
+						<executions>
+							<execution>
+								<!-- install the SDK at the initialize phase of the project -->
+								<phase>initialize</phase>
+								<goals>
+									<!-- Call the SDK installation goal to download the sdk -->
+									<goal>install-sdk</goal>
+								</goals>
+							</execution>
+							<configuration>
+								<skip>${skipNeoSDK}</skip>
+							</configuration>
+						</executions>
+
+						<configuration>
+							<skip>${skipDeploy}</skip>
+							<sdkInstallPath>${project.build.directory}/sdk</sdkInstallPath>
+							<host>${sap.cloud.host}</host>
+							<user>${sap.cloud.username}</user>
+							<password>${sap.cloud.password}</password>
+							<account>${sap.cloud.account}</account>
+							<application>${sap.cloud.application}</application>
+							<source>${project.build.directory}/${project.artifactId}-${project.version}.war
+							</source>
+							<synchronous>true</synchronous>
+							<javaVersion>1.7</javaVersion>
+							<!-- proxy configuration -->
+							<httpsProxyHost>${sap.cloud.sdk.config.proxy.host}
+							</httpsProxyHost>
+							<httpsProxyPort>${sap.cloud.sdk.config.proxy.port}
+							</httpsProxyPort>
+							<consoleHttpsProxyHost>${sap.cloud.sdk.config.proxy.host}
+							</consoleHttpsProxyHost>
+							<consoleHttpsProxyPort>${sap.cloud.sdk.config.proxy.port}
+							</consoleHttpsProxyPort>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</deploy>
+		<deploy-local>
+			<properties>
+				<sap.cloud.sdk.version>1.64.15</sap.cloud.sdk.version>
+				<sap.cloud.sdk.path>${project.build.directory}/sdk
+				</sap.cloud.sdk.path>
+				<local.server.root>${project.build.directory}/server
+				</local.server.root>
+				<local.server.host>localhost</local.server.host>
+				<local.server.console.port>9033</local.server.console.port>
+				<local.server.jmx.port>9004</local.server.jmx.port>
+				<local.server.http.port>9080</local.server.http.port>
+				<local.server.https.port>9443</local.server.https.port>
+				<local.server.ajp.port>9009</local.server.ajp.port>
+			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>com.sap.cloud</groupId>
+					<artifactId>neo-java-web-maven-plugin</artifactId>
+					<version>${sap.cloud.sdk.version}</version>
+					<scope>provided</scope>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-dependency-plugin</artifactId>
+						<version>2.8</version>
+						<executions>
+							<execution>
+								<id>install-common-sources</id>
+								<phase>initialize</phase>
+								<goals>
+									<goal>unpack</goal>
+								</goals>
+								<configuration>
+									<artifactItems>
+										<artifactItem>
+											<groupId>com.sap.cloud</groupId>
+											<artifactId>neo-java-web-sdk</artifactId>
+											<version>${sap.cloud.sdk.version}</version>
+											<!-- <classifier>sources</classifier> -->
+											<type>zip</type>
+											<overWrite>true</overWrite>
+											<outputDirectory>${project.build.directory}/sdk
+											</outputDirectory>
+											<includes>**/*</includes>
+										</artifactItem>
+									</artifactItems>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>com.sap.cloud</groupId>
+						<artifactId>neo-java-web-maven-plugin</artifactId>
+						<version>${sap.cloud.sdk.version}</version>
+						<executions>
+							<execution>
+								<id>cleanup-local-server</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>stop-local</goal>
+								</goals>
+								<configuration>
+									<failOnError>false</failOnError>
+								</configuration>
+							</execution>
+							<execution>
+								<id>install-local-server</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>install-local</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>deploy-local-application</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>deploy-local</goal>
+								</goals>
+							</execution>
+							<!-- The maven-antrun-plugin execution prepare-local-application defined 
+								farther below will run between this deploy-local-application and start-local-server 
+								executions -->
+							<execution>
+								<id>start-local-server</id>
+								<phase>integration-test</phase>
+								<goals>
+									<goal>start-local</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>stop-local-server</id>
+								<phase>post-integration-test</phase>
+								<!-- <goals> <goal>stop-local</goal> </goals> -->
+							</execution>
+						</executions>
+						<configuration>
+							<skip>${skipIntegrationTests}</skip>
+							<sdkInstallPath>${sap.cloud.sdk.path}</sdkInstallPath>
+							<location>${local.server.root}</location>
+							<consolePort>${local.server.console.port}</consolePort>
+							<httpPort>${local.server.http.port}</httpPort>
+							<httpsPort>${local.server.https.port}</httpsPort>
+							<jmxPort>${local.server.jmx.port}</jmxPort>
+							<ajpPort>${local.server.ajp.port}</ajpPort>
+							<source>${project.build.directory}/${project.build.finalName}.war
+							</source>
+							<waitUrl>http://${local.server.host}:${local.server.http.port}/n/ping
+							</waitUrl>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+
+		</deploy-local>
+		<olingo>
+			<!-- Olingo version -->
+			<properties>
+				<olingo.version>2.0.2-SNAPSHOT</olingo.version>
+			</properties>
+			<dependencies>
+				<!-- Olingo OData dependencies -->
+				<dependency>
+					<groupId>org.apache.olingo</groupId>
+					<artifactId>olingo-odata2-api</artifactId>
+					<version>${olingo.version}</version>
+					<scope>compile</scope>
+				</dependency>
+				<dependency>
+					<groupId>org.apache.olingo</groupId>
+					<artifactId>olingo-odata2-core</artifactId>
+					<version>${olingo.version}</version>
+					<scope>compile</scope>
+				</dependency>
+				<dependency>
+					<groupId>org.apache.olingo</groupId>
+					<artifactId>olingo-odata2-jpa-processor-api</artifactId>
+					<version>${olingo.version}</version>
+					<scope>compile</scope>
+				</dependency>
+				<dependency>
+					<groupId>org.apache.olingo</groupId>
+					<artifactId>olingo-odata2-api-annotation</artifactId>
+					<version>${olingo.version}</version>
+					<scope>compile</scope>
+				</dependency>
+				<dependency>
+					<groupId>org.apache.olingo</groupId>
+					<artifactId>olingo-odata2-jpa-processor-core</artifactId>
+					<version>${olingo.version}</version>
+					<scope>runtime</scope>
+				</dependency>
+				<dependency>
+					<groupId>org.apache.olingo</groupId>
+					<artifactId>odata2-spring</artifactId>
+					<version>${olingo.version}</version>
+				</dependency>
+				<dependency>
+					<groupId>org.apache.cxf</groupId>
+					<artifactId>cxf-rt-frontend-jaxrs</artifactId>
+					<version>2.7.5</version>
+				</dependency>
+			</dependencies>
+			<webConfig>
+				<context-param>
+					<param-name>contextConfigLocation</param-name>
+					<param-value>classpath*:META-INF/spring/applicationContext*.xml</param-value>
+				</context-param>
+				<listener>
+					<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+				</listener>
+				<servlet>
+					<description></description>
+					<display-name>CXFServlet</display-name>
+					<servlet-name>CXFServlet</servlet-name>
+					<servlet-class>org.apache.cxf.transport.servlet.CXFServlet</servlet-class>
+				</servlet>
+				<servlet-mapping>
+					<servlet-name>CXFServlet</servlet-name>
+					<url-pattern>/odata/*</url-pattern>
+				</servlet-mapping>
+			</webConfig>
+			<appContextConfig>
+				<namespaces>
+					<olingo-ns>http://www.apache.org/olingo/odata2/spring/odata</olingo-ns>
+				</namespaces>
+				<schemaLocation>http://www.apache.org/olingo/odata2/spring/odata http://www.apache.org/olingo/odata2/spring/odata.xsd</schemaLocation>
+				<imports>
+					<import resource="classpath:META-INF/cxf/cxf.xml"/>
+					<import resource="classpath:META-INF/cxf/cxf-servlet.xml"/>
+				</imports>
+				<beans>
+					<bean class="com.sap.ClassNameAsParameter" id="jpaServiceFactory"/>
+					<bean id="defaultEdm" scope="prototype" class="EdmFactoryBean" />
+					<bean id="defaultODataConn" scope="prototype" class="ODataConnectionBean" />
+					<bean id="odataServiceProvider" scope="prototype" class="ODataServiceProvider">
+						<!-- user should configure the service end-point here -->
+						<property name="endpoint" value="${odata.service.endpoint}" />
+					</bean>
+				</beans>
+				<serviceConfig>
+					<odata:server address="/odata.svc" factory="jpaServiceFactory" id="jparoolingo"/>
+				</serviceConfig>
+				<component-scan>
+				    <context:exclude-filter type="regex" expression=".*Factory.*"/>
+				</component-scan>
+			</appContextConfig>
+		</olingo>
+	</buckaroo>
+</configuration>
