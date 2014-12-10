@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_39b11ee2",
+        "filename": "src/main/java/com/sap/buckaroo/BuckarooCommands.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002914
+      },
+      "writtenOn": "2014-12-10T11:47:44Z",
+      "side": 1,
+      "message": "This whole package is redundant (dummy opertions). to be deleted in the code cleanup when it comes....",
+      "revId": "bd61ffa3f6cab68dc7f86825e3cf710ecb19995a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
