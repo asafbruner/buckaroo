@@ -63,7 +63,7 @@ public class PersistenceCommands implements CommandMarker {
      */
 	@CliAvailabilityIndicator("hcp setup remote-persistence")
 	public boolean isSetupPersistenceRemoteAvailable() {
-		return true;
+		return operations.isSetupPersistenceRemoteAvailable();
 	}
 	
     /**
@@ -76,7 +76,7 @@ public class PersistenceCommands implements CommandMarker {
     */
     @CliAvailabilityIndicator("hcp setup local-persistence")
     public boolean isSetupPersistenceLocalAvailable() {
-		return true;
+		return operations.isSetupPersistenceLocalAvailable();
     }	
 	
 	/**

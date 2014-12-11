@@ -12,8 +12,10 @@ package com.sap.buckaroo.jpasetup;
  * This command hides the running of jpa setup for dummy database type, by running it with a Hana command
  */
 public interface JpaSetupOperations {
+	
+	public boolean isJpaSetupAvailable();
 
-	public void run();
+	public void run();	
 	
 
 }

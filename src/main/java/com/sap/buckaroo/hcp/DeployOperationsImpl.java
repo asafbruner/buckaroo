@@ -1,7 +1,13 @@
 package com.sap.buckaroo.hcp;
 
-import java.io.IOException;
 //import java.util.logging.Logger;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.logging.Logger;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -12,22 +18,28 @@ import org.springframework.roo.process.manager.FileManager;
 import org.springframework.roo.project.DependencyScope;
 import org.springframework.roo.project.MavenOperations;
 import org.springframework.roo.project.Path;
+import org.springframework.roo.project.PathResolver;
 import org.springframework.roo.project.ProjectOperations;
 import org.springframework.roo.project.maven.Pom;
+import org.springframework.roo.shell.Shell;
 import org.springframework.roo.support.util.XmlUtils;
 import org.w3c.dom.Element;
 
+import com.sap.buckaroo.util.Constants;
+import com.sap.buckaroo.util.FileUtil;
 import com.sap.buckaroo.util.PomUtils;
+
 
 @Component
 @Service
 public class DeployOperationsImpl implements DeployOperations {
 
-	// TODO - used logs
-	// private static Logger LOGGER = Logger.getLogger(DeployOperationsImpl.class
-	// .getName());
-	@Reference
-	private FileManager fileManager;
+// TODO - used logs
+	private static Logger LOGGER = Logger.getLogger(DeployOperationsImpl.class
+			.getName());
+	@Reference private FileManager fileManager;
+	@Reference private PathResolver pathResolver;
+
 
 	private final String SAP_CLOUD_HOST_PROP = "sap.cloud.host";
 	private final String SAP_CLOUD_ACCOUNT_PROP = "sap.cloud.account";
@@ -58,19 +70,29 @@ public class DeployOperationsImpl implements DeployOperations {
 	private ProjectOperations projectOperations;
 	@Reference
 	private MavenOperations mavenOperations;
+	@Reference private Shell shell;
+	
+	//TODO, following is a very unelegant solution that should be fixed later
+	//Following is used to ensure that internal commands are not exposed externally (the flag is toggled just before running the command, and then toggled again)
+	private boolean isAllowCommandExternally = false;
 
 	// /////////////////////////////////////////
 	// API
 	// /////////////////////////////////////////
 
 	@Override
-	public boolean isSetupDeployRemoteAvailable() {
+	public boolean isSetupDeployRemoteAvailable() {	
+		return isAllowCommandExternally;
+	}
+	
+	@Override
+	public boolean isDeployRemoteAvailable() {			
 		return true;
 	}
 
 	@Override
-	// TODO, return true/false, depending on whether or not the .war file exists
-	public boolean isDeployRemoteAvailable() {
+	//TODO, return true/false, depending on whether or not the .war file exists
+	public boolean isSetupHCPConfigAvailable() {			
 		return true;
 	}
 
@@ -86,7 +108,12 @@ public class DeployOperationsImpl implements DeployOperations {
 	}
 
 	@Override
-	public void setupDeployRemote(final String host, final String account, final String userName, final String password) {
+	//This method runs three things:
+	//1) adjust the POM
+	//2) install the SDK
+	//3) setup the webapp
+	public void setupDeployRemote(final String host, final String account, final String userName,
+			final String password) {
 		Pom currentPom = PomUtils.getCurrentPOM(projectOperations);
 
 		// read the configuration file from the current CLASSPATH
@@ -138,10 +165,76 @@ public class DeployOperationsImpl implements DeployOperations {
 		}
 
 	}
+	
+	//if curVal is populated, return it.  Otherwise, return the value from the properties file (or null if it didn't exist)
+	private String getPropValFromFileIfNecessary(Properties props, String curVal, String propKey){
+		if ((curVal != null) && (!curVal.equals("")))
+			return curVal;
+
+		return FileUtil.getPropertyByKey(curVal, propKey, props, LOGGER);
+	}
 
 	@Override
 	public void deployRemoteCommand(String command, String host, String account, String userName, String password) {
 		Validate.notNull(command, "Plugin command required");
+
+		//We look for parameters only if it is a deploy command
+		Map<String, String> propKeyValues = new HashMap<String, String>();
+		if (command.equals(Constants.DEPLOY)){
+			
+			//get the configuration file's path/name
+			final String configPropertiesFilePathName= FileUtil.getPropertiesPath(fileManager, pathResolver, Constants.RESOURCE_DIR + Constants.CONFIG_PROPERTIES_FILE, false, LOGGER);
+			
+			//use the following to determine whether or not we need to resave data (save only if properties were received)
+			final boolean isPropsReceived = (host != null) || (account != null) || (userName != null) || (password != null)? true:false; 
+			
+			if ((account==null) || (host==null) || (userName==null) || (password==null)){
+				//try to get the values from the configuration file
+				Properties props = new Properties();
+				InputStream inputStr = null;
+				try{
+					inputStr = new FileInputStream(configPropertiesFilePathName);
+					props.load(inputStr);
+					
+					//Get whatever was missing, return if it was missing from properties
+					if ((account = getPropValFromFileIfNecessary(props, account, Constants.HCP_REMOTE_ACCOUNT)) == null)
+						return;
+					if ((host = getPropValFromFileIfNecessary(props, host, Constants.HCP_REMOTE_HOST)) == null)
+						return;
+					if ((userName = getPropValFromFileIfNecessary(props, userName, Constants.HCP_REMOTE_USER)) == null)
+						return;
+					if ((password = getPropValFromFileIfNecessary(props, password, Constants.HCP_REMOTE_PSWD)) == null)
+						return;
+//					if ((account = FileUtil.getPropertyByKey(account, Constants.HCP_REMOTE_ACCOUNT, props, LOGGER)) == null)
+//						return;
+//					if ((host = FileUtil.getPropertyByKey(host, Constants.HCP_REMOTE_HOST, props, LOGGER)) == null)
+//						return;				
+//					if ((userName = FileUtil.getPropertyByKey(userName, Constants.HCP_REMOTE_USER, props, LOGGER)) == null)
+//						return;
+//					if ((password = FileUtil.getPropertyByKey(password, Constants.HCP_REMOTE_PSWD, props, LOGGER)) == null)
+//						return;
+				}catch (IOException e){
+					LOGGER.info("Exception received when opening file " + configPropertiesFilePathName + ": " + e.toString());//TODO KM
+					return;
+				}
+				finally{
+					FileUtil.closeInput(inputStr, LOGGER);
+				}
+			}
+			//populate the properties map for saving
+			propKeyValues.put(Constants.HCP_REMOTE_ACCOUNT, account);
+			propKeyValues.put(Constants.HCP_REMOTE_HOST, host);
+			propKeyValues.put(Constants.HCP_REMOTE_USER, userName);
+			propKeyValues.put(Constants.HCP_REMOTE_PSWD, password);
+			
+			//regardless of where the parameters came from (input or from properties file), save them now
+			if (isPropsReceived){
+				//If there was an error within, don't continue on
+				if (FileUtil.createUpdateConfigPropertiesFile(propKeyValues, configPropertiesFilePathName, LOGGER) == false)
+					return;//if we couldn't save the parameters for whatever reason, don't continue on (log was already written)
+			}
+		}
+
 		StringBuffer sb = (new StringBuffer(NEO_PLUGIN_NAME)).append(":").append(command);
 		if (!StringUtils.isBlank(host)) {
 			sb.append(" -D").append(SAP_CLOUD_HOST_PROP).append("=").append(host);
@@ -161,6 +254,24 @@ public class DeployOperationsImpl implements DeployOperations {
 		} catch (IOException ioe) {
 			throw new IllegalStateException(ioe);
 		}
+	}
+	
+	@Override
+	public void setupHCPConfig(){
+		//update the pom
+		//temporarily toggle this flag, in order to allow running of the following command
+		isAllowCommandExternally = true;//set this true temporarily, just in order to run the following
+		shell.executeCommand("hcp setup remote-deploy");
+		isAllowCommandExternally = false;
+		
+		//install the HCP sdk locally
+		shell.executeCommand("hcp remote-deploy --goal " + Constants.INSTALL_SDK);
+		
+		//Some more configuration changes needed to support web and UI5
+		//temporarily toggle this flag, in order to allow running of the following command
+		WebAppOperationsImpl.setIsAllowCommandExternally(true);
+		shell.executeCommand("hcp setup webapp");
+		WebAppOperationsImpl.setIsAllowCommandExternally(false);
 	}
 
 	@Override
@@ -210,5 +321,4 @@ public class DeployOperationsImpl implements DeployOperations {
 			throw new IllegalStateException(ioe);
 		}
 	}
-
 }
