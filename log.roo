@@ -2,3 +2,21 @@
 addon create simple --topLevelPackage com.sap.river --projectName buckaroo
 exit
 // Spring Roo 1.2.5.RELEASE [rev 8341dc2] log closed at 2014-11-06 13:29:22
+// Spring Roo 1.2.5.RELEASE [rev 8341dc2] log opened at 2014-12-11 11:09:04
+osgi uninstall --bundleSymbolicName com.sap.buckaroo
+osgi obr list
+osgi obr url add --url file:///C:\Users\i074921\.m2\repository.xml
+osgi obr list
+exit
+// Spring Roo 1.2.5.RELEASE [rev 8341dc2] log closed at 2014-12-11 11:12:06
+// Spring Roo 1.2.5.RELEASE [rev 8341dc2] log opened at 2014-12-11 11:15:17
+osgi obr list
+osgi obr url add --url file:///C:\Users\i074921\.m2\repository.xml
+osgi obr list
+osgi start --url file:///C:\Users\i074921\workspace\buckaroo\target\com.sap.buckaroo-0.1.0.BUILD-SNAPSHOT.jar
+osgi obr start --bundleSymbolicName com.sap.buckaroo
+osgi uninstall --bundleSymbolicName com.sap.buckaroo
+osgi start --url file:///C:\Users\i074921\workspace\buckaroo\target\com.sap.buckaroo-0.1.0.BUILD-SNAPSHOT.jar
+osgi ps
+exit 
+// Spring Roo 1.2.5.RELEASE [rev 8341dc2] log closed at 2014-12-11 12:18:39
