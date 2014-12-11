@@ -24,6 +24,7 @@ public interface ODataOperations {
 	 */
 	void setupOlingo(final JavaType factoryClass, final String serviceBasePath);
 
+	void setupWebAppProj();
 
 	/**
 	 * 

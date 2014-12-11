@@ -29,7 +29,6 @@ public class WebAppOperationsImpl implements WebAppOperations {
 	private static Logger LOGGER = Logger.getLogger(WebAppOperationsImpl.class.getName());
 
 	private static final String WEB_MVC_XML = "WEB-INF/spring/webmvc-config.xml";
-	private static final String VIEW_XML = "WEB-INF/views/views.xml";
 	private static final String LOCATION_ATTR = "location";
 	private static final String MAPPING_ATTR = "mapping";
 	private static final String LOCATION_ATTR_VALUE = "/, classpath:/META-INF/web-ui5/";
@@ -70,7 +69,6 @@ public class WebAppOperationsImpl implements WebAppOperations {
 	@Override
 	public void setupWebApp() {
 		setupWebmvcConfigXml();
-		setupViewsXml();
 		installUI5Resources();
 	}
 
@@ -84,27 +82,6 @@ public class WebAppOperationsImpl implements WebAppOperations {
 		FileUtils.copyRecursively(sourceDir, webappDir, false);
 	}
 
-	/**
-	 * 2) in views.xml: under this tag: <definition name="index" extends="default"> replace the exsiting tag with this one: <put-attribute
-	 * name="body" value="index.html" />
-	 */
-	private void setupViewsXml() {
-		// TODO replace the attribute in a more elegant way
-		final String viewsPath = pathResolver.getFocusedIdentifier(Path.SRC_MAIN_WEBAPP, VIEW_XML);
-		final String old_value = "/WEB-INF/views/index.jspx";
-		final String new_value = "index.html";
-		InputStream is = fileManager.getInputStream(viewsPath);
-
-		String allClassContent = "";
-		try {
-			allClassContent = IOUtils.toString(is);
-		} catch (IOException e) {
-			LOGGER.info("Could not read from input stream");
-			e.printStackTrace();
-		}
-		allClassContent = allClassContent.replaceAll(old_value, new_value);
-		fileManager.createOrUpdateTextFileIfRequired(viewsPath, allClassContent, true);
-	}
 
 	/**
 	 * Set the path to the ui5 library. In webmvc-config.xml add the line: <mvc:resources location="/, classpath:/META-INF/web-ui5/"

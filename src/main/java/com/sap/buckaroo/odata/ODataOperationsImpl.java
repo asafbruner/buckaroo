@@ -1,5 +1,7 @@
 package com.sap.buckaroo.odata;
 
+import static org.springframework.roo.model.SpringJavaType.DISPATCHER_SERVLET;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -10,6 +12,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.Validate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
@@ -17,6 +20,7 @@ import org.apache.olingo.odata2.api.edm.Edm;
 import org.apache.olingo.odata2.api.edm.EdmEntitySet;
 import org.apache.olingo.odata2.api.edm.EdmException;
 import org.apache.olingo.odata2.api.edm.EdmParameter;
+import org.springframework.roo.addon.web.mvc.controller.WebMvcOperations;
 import org.springframework.roo.classpath.PhysicalTypeCategory;
 import org.springframework.roo.classpath.PhysicalTypeIdentifier;
 import org.springframework.roo.classpath.TypeLocationService;
@@ -43,9 +47,11 @@ import org.springframework.roo.project.MavenOperations;
 import org.springframework.roo.project.Path;
 import org.springframework.roo.project.PathResolver;
 import org.springframework.roo.project.ProjectOperations;
+import org.springframework.roo.project.ProjectType;
 import org.springframework.roo.project.Property;
 import org.springframework.roo.support.util.DomUtils;
 import org.springframework.roo.support.util.FileUtils;
+import org.springframework.roo.support.util.WebXmlUtils;
 import org.springframework.roo.support.util.XmlUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -53,6 +59,7 @@ import org.w3c.dom.Node;
 
 import com.sap.buckaroo.hcp.DeployCommands;
 import com.sap.buckaroo.util.ConfigurationUtil;
+import com.sap.buckaroo.util.PomUtils;
 
 @Component
 @Service
@@ -65,7 +72,10 @@ public class ODataOperationsImpl implements ODataOperations {
 	private static final String XML_NS_ODATA = "xmlns:odata";
 	private static final String XSI_SCHEMA_LOCATION = "xsi:schemaLocation";
 	private static final String ODATA_SERVICE_PROPERTIES_FILE = "odata-service.properties";
-
+	private static final String WEB_XML = "WEB-INF/web.xml";
+	private static final String WEBMVC_CONFIG_XML = "WEB-INF/spring/webmvc-config.xml";
+	
+	
 	/** buckaroo specific details in the project setup files (such as pom.xml etc.) */
 	@Reference
 	private ProjectOperations projectOperations;
@@ -81,7 +91,9 @@ public class ODataOperationsImpl implements ODataOperations {
 	private TypeLocationService typeLocationService;
 	@Reference
 	private TypeParsingService typeParsingService;
-
+	@Reference 
+	private WebMvcOperations webMvcOperations;
+	
 	/** Edm type management */
 	@Reference
 	private EdmTypeParsingService edmParsingService;
@@ -110,9 +122,43 @@ public class ODataOperationsImpl implements ODataOperations {
 		setupOlingoJPAFactory(factoryClass);
 	}
 
+	
 	// /////////////////////////////////////////
 	// Auxiliary Functions
 	// /////////////////////////////////////////
+
+	public void setupWebAppProj() {
+		
+		//Creates web.xml + springmvc.xml
+		webMvcOperations.installMinimalWebArtifacts();
+
+		// Verify that the web.xml already exists
+		final String webXmlPath = pathResolver.getFocusedIdentifier(
+				Path.SRC_MAIN_WEBAPP, WEB_XML);
+		Validate.isTrue(fileManager.exists(webXmlPath), "'%s' does not exist",
+				webXmlPath);
+
+		//Update web.xml with dispatcher servlet + servlet mapping
+		final Document document = XmlUtils.readXml(fileManager
+				.getInputStream(webXmlPath));
+
+		WebXmlUtils.addServlet(projectOperations.getFocusedProjectName(),
+				DISPATCHER_SERVLET.getFullyQualifiedTypeName(), "/", 1,
+				document, "Handles Spring requests",
+				new WebXmlUtils.WebXmlParam("contextConfigLocation",
+						WEBMVC_CONFIG_XML));
+
+		fileManager.createOrUpdateTextFileIfRequired(webXmlPath,
+				XmlUtils.nodeToString(document), true);
+		
+		//Adding spring dependency to pom.xml
+		final Element configuration = XmlUtils.getConfiguration(DeployCommands.class);
+		String moduleName = ConfigurationUtil.getCurrentPOM(projectOperations).getModuleName();
+		PomUtils.addDependencies(projectOperations, "/configuration/buckaroo/springWebMvc/dependencies/dependency", configuration, moduleName);
+		
+		//Changing the project type from jar to war
+		projectOperations.updateProjectType(projectOperations.getFocusedModuleName(), ProjectType.WAR);
+	}
 
 	private void createApplicationContextTest() {
 		// The path of the new file to create or update

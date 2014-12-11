@@ -77,6 +77,11 @@ public class ODataCommands implements CommandMarker {
     	operations.setupOlingo(factoryClassName, serviceBasePath);
     }
     
+    @CliCommand(value = "webapp setup", help = "setup the configuration for web application")
+    public void webAppSetupp() {
+    	operations.setupWebAppProj();
+    }
+    
     /**
      * Configure the external service to consume
      * 

@@ -276,5 +276,14 @@
 				</component-scan>
 			</appContextConfig>
 		</olingo>
+		<springWebMvc>
+			<dependencies>
+				<dependency>
+            		<groupId>org.springframework</groupId>
+            		<artifactId>spring-webmvc</artifactId>
+            		<version>${spring.version}</version>
+        		</dependency>
+			</dependencies>
+		</springWebMvc>
 	</buckaroo>
 </configuration>
