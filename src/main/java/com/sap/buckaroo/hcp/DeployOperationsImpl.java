@@ -134,7 +134,7 @@ public class DeployOperationsImpl implements DeployOperations {
 		PomUtils.updateInputRemoteProperties(projectOperations, moduleName, host, account, userName, password, SAP_CLOUD_HOST_PROP,
 				SAP_CLOUD_ACCOUNT_PROP, SAP_CLOUD_USERNAME_PROP, SAP_CLOUD_PASSWORD_PROP);
 
-		supportRemoteLogger(projectOperations, moduleName);
+//		supportRemoteLogger(projectOperations, moduleName);
 	}
 
 	/**
