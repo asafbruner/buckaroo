@@ -1,4 +1,4 @@
-package com.sap.river.util;
+package com.sap.buckaroo.util;
 
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
