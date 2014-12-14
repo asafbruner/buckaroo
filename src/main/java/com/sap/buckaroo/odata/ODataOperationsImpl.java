@@ -2,13 +2,17 @@ package com.sap.buckaroo.odata;
 
 import static org.springframework.roo.model.SpringJavaType.DISPATCHER_SERVLET;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.IOUtils;
@@ -59,7 +63,10 @@ import org.w3c.dom.Node;
 
 import com.sap.buckaroo.hcp.DeployCommands;
 import com.sap.buckaroo.util.ConfigurationUtil;
+import com.sap.buckaroo.util.Constants;
+import com.sap.buckaroo.util.FileUtil;
 import com.sap.buckaroo.util.PomUtils;
+
 
 @Component
 @Service
@@ -74,6 +81,7 @@ public class ODataOperationsImpl implements ODataOperations {
 	private static final String ODATA_SERVICE_PROPERTIES_FILE = "odata-service.properties";
 	private static final String WEB_XML = "WEB-INF/web.xml";
 	private static final String WEBMVC_CONFIG_XML = "WEB-INF/spring/webmvc-config.xml";
+
 	
 	
 	/** buckaroo specific details in the project setup files (such as pom.xml etc.) */
@@ -128,7 +136,6 @@ public class ODataOperationsImpl implements ODataOperations {
 	// /////////////////////////////////////////
 
 	public void setupWebAppProj() {
-		
 		//Creates web.xml + springmvc.xml
 		webMvcOperations.installMinimalWebArtifacts();
 
@@ -530,10 +537,9 @@ public class ODataOperationsImpl implements ODataOperations {
 
 		// Add @ContextConfiguration Annotation
 		final List<AnnotationAttributeValue<?>> ctxCfgAttributes = new ArrayList<AnnotationAttributeValue<?>>();
-		ctxCfgAttributes.add(new StringAttributeValue(new JavaSymbolName("locations"),
-				"classpath*:META-INF/spring/applicationContext-test.xml"));
-		annotationBuilder.add(new AnnotationMetadataBuilder(new JavaType("org.springframework.test.context.ContextConfiguration"),
-				ctxCfgAttributes));
+		ctxCfgAttributes.add(new StringAttributeValue(new JavaSymbolName("locations"), "classpath*:" + Constants.RESOURCE_DIR + "applicationContext-test.xml"));
+		annotationBuilder.add(new AnnotationMetadataBuilder(new JavaType("org.springframework.test.context.ContextConfiguration"), ctxCfgAttributes));
+		
 
 		cidBuilder.setAnnotations(annotationBuilder);
 
@@ -684,6 +690,7 @@ public class ODataOperationsImpl implements ODataOperations {
 
 	}
 
+
 	/**
 	 * Creates a new class named className, adding content from the given file
 	 * @param filename - the filename to copy the content from
@@ -771,17 +778,87 @@ public class ODataOperationsImpl implements ODataOperations {
 	private String generateJavaSymbolFromEdmName(final String edmName) {
 		return edmName.replaceAll("[-_@<> %~\\/\\*\\!\\?\\^\\(\\)\\{\\}\\[\\]\\|\\'\\+]", "");
 	}
+	
+	//if curVal is populated, return it.  Otherwise, return the value from the properties file (or null if it didn't exist)
+	private String getPropValFromFileIfNecessary(Properties props, String curVal, String propKey){
+		if ((curVal != null) && (!curVal.equals("")))
+			return curVal;
+
+		return FileUtil.getPropertyByKey(curVal, propKey, props, LOGGER);
+	}
 
 	@Override
-	public void setupExternalService(final String serviceBasePath, final String username, final String password,
-			final String serviceProxyName, final boolean isTestAutomatically) {
+	public void setupExternalService(String serviceBasePath, String username, String password, final String serviceProxyName, final boolean isTestAutomatically) {
+		final String configPropertiesFilePathName= FileUtil.getPropertiesPath(fileManager, pathResolver, Constants.RESOURCE_DIR + Constants.CONFIG_PROPERTIES_FILE, false, LOGGER);
+		
+		//if parameters do not exist, try to get them from the properties file
+		Map<String, String> propKeyValues = new HashMap<String, String>();
+		
+		//use the following to determine whether or not we need to resave data (save only if properties were received)
+		final boolean isPropsReceived = (serviceBasePath != null) || (username != null) || (password != null)? true:false; 
+		
+		if ((serviceBasePath == null)  || (username == null) || (password == null)){
+			if (!fileManager.exists(configPropertiesFilePathName)){
+				throw new IllegalStateException("Parameters were not received in command line and do not exist in odata service properties file");//TODOKM, check with KM
+			}
+			
+			//try to get the values from the configuration file
+			Properties props = new Properties();
+			InputStream input = null;
+			try{
+				input = new FileInputStream(configPropertiesFilePathName);
+				props.load(input);
+				
+				//Get whatever was missing, return if it was missing from properties
+				if ((serviceBasePath = getPropValFromFileIfNecessary(props, serviceBasePath, Constants.ODATA_SERVICE_ENDPOINT)) == null)
+					return;
+				if ((username = getPropValFromFileIfNecessary(props, username, Constants.CONNECTION_AUTHENTICATION_USER)) == null)
+					return;
+				if ((password = getPropValFromFileIfNecessary(props, password, Constants.CONNECTION_AUTHENTICATION_PASSWORD)) == null)
+					return;
+//				if ((serviceBasePath = FileUtil.getPropertyByKey(serviceBasePath, Constants.ODATA_SERVICE_ENDPOINT, props, LOGGER)) == null)
+//					return;
+//				if ((username = FileUtil.getPropertyByKey(username, Constants.CONNECTION_AUTHENTICATION_USER, props, LOGGER)) == null)
+//					return;
+//				if ((password = FileUtil.getPropertyByKey(password, Constants.CONNECTION_AUTHENTICATION_PASSWORD, props, LOGGER)) == null)
+//					return;
+			}catch (IOException e){
+				LOGGER.info("Exception received when opening file " + configPropertiesFilePathName + ": " + e.toString());//TODO, needs KM review
+				return;
+			}
+			finally{
+				FileUtil.closeInput(input, LOGGER);				
+			}
+		}
 
-		// Create the properties file
-		// TODO name of the file should not be hardcoded !!!
-		createClientPropertiesFile(serviceBasePath, username, password, false);
+		//populate the properties map for saving
+		propKeyValues.put(Constants.ODATA_SERVICE_ENDPOINT, serviceBasePath);
+		propKeyValues.put(Constants.CONNECTION_AUTHENTICATION_USER, username);
+		propKeyValues.put(Constants.CONNECTION_AUTHENTICATION_PASSWORD, password);		
+		propKeyValues.put(Constants.ODATA_SERVICE_VERSION, "2.0");
+		propKeyValues.put(Constants.CONNECTION_AUTHENTICATION_TYPE, "Basic");
+		propKeyValues.put(Constants.CONNECTION_HTTP_HEADERS_ACCEPT, "application/json");
+		propKeyValues.put(Constants.CONNECTION_HTTP_HEADERS_CONTENTTYPE, "application/json");
+		
+		//try to encrypt:
+//		EncryptionUtils eu = new EncryptionUtils();
+//		String encrypted = eu.encrypt2(password);
+//		System.out.println("Encrypted string: \n[[[..." + encrypted + "...]]]");
+//		eu = new EncryptionUtils();
+//		String decrypted = eu.decrypt2(encrypted);
+//		System.out.println("Decrypted string: \n[[[..." + decrypted + "...]]]");
+		
+		
+		// save the data, only if no new properties were received
+		if (isPropsReceived){
+			//If there was an error within, don't continue on
+			if (FileUtil.createUpdateConfigPropertiesFile(propKeyValues, configPropertiesFilePathName, LOGGER) == false)
+				return;
+		}
+		
+		//Create some infrastructure beans that allow the users to plug odata service
+		//consumption support into their application
 
-		// Create some infrastructure beans that allow the users to plug odata service
-		// consumption support into their application
 		createEdmFactory();
 		createConnectionBean();
 		createServiceProvider();
@@ -795,9 +872,9 @@ public class ODataOperationsImpl implements ODataOperations {
 
 		try {
 			Edm edm = odataServiceProvider.readEdm();
-
-			// find the name of the service
-			// TODO have the command set hte name because we do not have access to the schema name here
+			
+			//find the name of the service
+			//TODO have the command set the name because we do not have access to the schema name here
 			String serviceName = serviceProxyName != null ? serviceProxyName : edm.getDefaultEntityContainer().getName();
 			JavaType serviceBeanType = new JavaType(projectOperations.getFocusedTopLevelPackage() + ".odata." + serviceName);
 
@@ -805,7 +882,9 @@ public class ODataOperationsImpl implements ODataOperations {
 
 			// If tests automatically is given - create the applicationContext-test.xml and the generated tests
 			if (isTestAutomatically) {
-				createClientPropertiesFile(serviceBasePath, username, password, true);
+				// save the data, only if no new properties were received
+				if (isPropsReceived)
+					FileUtil.createUpdateConfigPropertiesFile(propKeyValues, FileUtil.getPropertiesPath(fileManager, pathResolver, Constants.RESOURCE_DIR + Constants.CONFIG_PROPERTIES_FILE, true, LOGGER), LOGGER);
 				createApplicationContextTest();
 				createODataServiceProxyTestBean(serviceBeanType, edm);
 			}
@@ -814,7 +893,6 @@ public class ODataOperationsImpl implements ODataOperations {
 			e.printStackTrace();
 			throw new IllegalStateException("failed to consume the external service", e);
 		}
-
 	}
 
 	private MethodMetadataBuilder createPrintUtilForTestBean(String declaredByMetadataId) {

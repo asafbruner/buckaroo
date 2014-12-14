@@ -3,6 +3,7 @@ package com.sap.buckaroo.hcp;
 import java.io.InputStream;
 //import java.util.logging.Logger;
 
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.felix.scr.annotations.Component;
@@ -43,6 +44,14 @@ public class PersistenceOperationsImpl implements PersistenceOperations {
 
 	@Reference
 	private MavenOperations mavenOperations;
+	
+	//TODO, following is a very unelegant solution that should be fixed later
+	//Following is used to ensure that internal commands are not exposed externally (the flag is toggled just before running the command, and then toggled again)
+	private static boolean isAllowCommandExternally = false;
+	
+	public static void setIsAllowCommandExternally(boolean isAllowCommandExternally){
+		PersistenceOperationsImpl.isAllowCommandExternally = isAllowCommandExternally;
+	}
 
 	// /////////////////////////////////////////
 	// API
@@ -50,7 +59,7 @@ public class PersistenceOperationsImpl implements PersistenceOperations {
 
 	@Override
 	public boolean isSetupPersistenceRemoteAvailable() {
-		return true;
+		return isAllowCommandExternally;
 	}
 
 	@Override

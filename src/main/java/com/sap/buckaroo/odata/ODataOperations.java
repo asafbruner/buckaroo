@@ -33,7 +33,7 @@ public interface ODataOperations {
 	 * @param password
 	 * @param serviceProxyName 
 	 */
-	void setupExternalService(final String serviceBasePath, final String username, final String password, final String serviceProxyName, final boolean isTestAutomatically);
+	void setupExternalService(String serviceBasePath, String username, String password, final String serviceProxyName, final boolean isTestAutomatically);
 	
 	
 }

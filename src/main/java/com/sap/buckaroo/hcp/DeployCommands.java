@@ -10,6 +10,8 @@ import org.springframework.roo.shell.CliCommand;
 import org.springframework.roo.shell.CliOption;
 import org.springframework.roo.shell.CommandMarker;
 
+import com.sap.buckaroo.util.Constants;
+
 /**
  * Roo add-on for deployment on SAP HANA Cloud Platform
  * ------------------------------------------------------
@@ -79,6 +81,15 @@ public class DeployCommands implements CommandMarker {
 		return operations.isDeployRemoteAvailable();
 	}
 	
+	/**
+	 * 
+	 * @return
+	 */
+	@CliAvailabilityIndicator("hcp setup config")
+	public boolean isSetupHCPConfigAvailable() {		
+		return operations.isSetupHCPConfigAvailable();
+	}
+	
     /**
     * This method is optional. It allows automatic command hiding in situations when the command should not be visible.
     *
@@ -131,12 +142,24 @@ public class DeployCommands implements CommandMarker {
      */
     @CliCommand(value = "hcp remote-deploy", help = "Deploy the web application to HANA Cloud Platform")
     public void deployRemoteCommand(
-    		@CliOption(key = "goal", unspecifiedDefaultValue = "deploy", help = "goal for the neo web plugin") final String command,
-    		@CliOption(key = "host", unspecifiedDefaultValue = "neo.ondemand.com", help = "The host of the HANA cloud platform") final String host,
-    		@CliOption(key = "account", help = "The id of the account on HANA cloud platform") final String account,
-    		@CliOption(key = "user", help = "The user name to log into the account") final String userName,
-    		@CliOption(key = "password", help = "The login password of the user") final String password) {
+    		@CliOption(key = "goal", mandatory=false, unspecifiedDefaultValue = Constants.DEPLOY, help = "goal for the neo web plugin") final String command,
+    		@CliOption(key = "host", mandatory=false, unspecifiedDefaultValue = "neo.ondemand.com", help = "The host of the HANA cloud platform") final String host,
+    		@CliOption(key = "account", mandatory=false, help = "The id of the account on HANA cloud platform") final String account,
+    		@CliOption(key = "user", mandatory=false, help = "The user name to log into the account") final String userName,
+    		@CliOption(key = "password", mandatory=false, help = "The login password of the user") final String password) {
     	operations.deployRemoteCommand(command, host, account, userName, password);
+    }
+    
+    /**
+     * a few commands combined together:  update POM, install HCP SDK, and update some config files
+     * @param host
+     * @param account
+     * @param userName
+     * @param password
+     */
+    @CliCommand(value = "hcp setup config", help = "Setup HCP and related Web configuration")
+    public void setupHCPConfig() {
+    	operations.setupHCPConfig();
     }
     
     /**

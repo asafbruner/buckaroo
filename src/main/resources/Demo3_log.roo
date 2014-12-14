@@ -1,0 +1,17 @@
+project --topLevelPackage com.sap.buckaroo --projectName buckaroodemo
+
+setup database --database HANA 
+
+cds parsefile --filepathname C:\\Users\\i074921\\workspace\\cds.txt
+field string --fieldName name_aaa --class com.sap.roo.Topping
+finder add findBasesByNameLike
+
+odata setup --class ~.odata.factory
+odata external service --service https://sfsfbizxtrial.hana.ondemand.com/odata/v2 --username P1940779381 --password 1Qa2Ws3Ed --serviceProviderClassName SFSFOdata --testAutomatically
+
+hcp setup config
+
+perform command --mavenCommand "package -DskipTests"
+
+hcp remote-deploy --account sapriver --host neo.ondemand.com --user P1940779381 --password 1Qa2Ws3Ed
+hcp remote-deploy --account sapriver --host neo.ondemand.com --user P1940779381 --password 1Qa2Ws3Ed --goal start

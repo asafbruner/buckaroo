@@ -6,6 +6,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
+import org.springframework.roo.shell.CliAvailabilityIndicator;
 import org.springframework.roo.shell.CliCommand;
 import org.springframework.roo.shell.CliOption;
 import org.springframework.roo.shell.CommandMarker;
@@ -51,11 +52,16 @@ public class JpaSetupCommands implements CommandMarker {
 	protected void deactivate(ComponentContext context) {
 		// Nothing to do here
 	}
+	
+	@CliAvailabilityIndicator("setup database")
+	public boolean isJpaSetupAvailable() {
+		return operations.isJpaSetupAvailable();
+	}
 
 	
 	/**
 	 */
-    @CliCommand(value = "jpa database setup", help = "jpa database setup (Hana)")
+    @CliCommand(value = "setup database", help = "setup database (Hana)")
     public void doJpaSetup(@CliOption(key = "database", mandatory = true, help = "The system's DB type") final JpaSetupPropertyName propName) {
     	operations.run();
     }

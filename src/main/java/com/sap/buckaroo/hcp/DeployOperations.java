@@ -26,6 +26,12 @@ public interface DeployOperations {
 	 */
 	public boolean isDeployRemoteAvailable();
 	
+	/**
+	 * 
+	 * @return
+	 */
+	public boolean isSetupHCPConfigAvailable();
+	
     /**
      * 
      * @return true/false, depending on whether or not setup for deploy is available
@@ -58,7 +64,13 @@ public interface DeployOperations {
      * @param userName - Your SCN login name which serves as your user name on your HCP account
      * @param password - Your SCN login password which serves as your password to your HCP account
      */
-	public void deployRemoteCommand(final String command, final String host, final String account, final String userName, final String password);
+	public void deployRemoteCommand(final String command, String host, String account, String userName, String password);
+	
+	
+	/**
+	 * a few commands combined together:  update POM, install HCP SDK, and update some config files
+	 */
+	public void setupHCPConfig();
 
     /**
      * Configure the maven setup in POM needed for activating deploy to local HCP

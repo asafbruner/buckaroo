@@ -3,7 +3,6 @@ package com.sap.buckaroo.util;
 import java.util.ArrayList;
 import java.util.List;
 //import java.util.logging.Logger;
-
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -117,7 +116,7 @@ public class PomUtils {
 
 /**
  * Add an exclusion of a dependency identified by it's groupId and artifactId.
- * 	
+ * 	If it exists already, don't add it again
  * @param projectOperations
  * @param moduleName
  * @param groupId
@@ -128,10 +127,15 @@ public class PomUtils {
 	public static void excludeDependency(ProjectOperations projectOperations, String moduleName, String groupId, String artifactId, String exGroupId, String exArtifactId) {
 		Dependency dep = getDependency(projectOperations, groupId, artifactId);
 		if (dep != null) {
-			dep.addExclusion(exGroupId, exArtifactId);
-			// TODO - fix a roo bug - addDependency does not support an update and projectOperations.removeDependency does not clean the set
-			projectOperations.getPomFromModuleName(moduleName).getDependencies().remove(dep);  
-			projectOperations.addDependency(moduleName, dep);
+			//Add the exclusion only if it doesn't already exist
+			List<Dependency> exclusions = dep.getExclusions();
+			Dependency newExclusion = new Dependency(exGroupId, exArtifactId,"ignored");
+			if (!exclusions.contains(newExclusion)){			
+				dep.addExclusion(exGroupId, exArtifactId);
+				// TODO - fix a roo bug - addDependency does not support an update and projectOperations.removeDependency does not clean the set
+				projectOperations.getPomFromModuleName(moduleName).getDependencies().remove(dep);  
+				projectOperations.addDependency(moduleName, dep);
+			}
 		}
 	}
 

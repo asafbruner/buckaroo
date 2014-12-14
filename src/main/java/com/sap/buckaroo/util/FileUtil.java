@@ -1,14 +1,25 @@
 package com.sap.buckaroo.util;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.IOUtils;
 import org.springframework.roo.process.manager.FileManager;
 import org.springframework.roo.process.manager.MutableFile;
+import org.springframework.roo.project.Path;
+import org.springframework.roo.project.PathResolver;
 
 /**
- * Utility class for handling copying of resource in the file system
+ * General utility class, including for handling copying of resource in the file system
  *
  */
 public class FileUtil {
@@ -69,4 +80,112 @@ public class FileUtil {
 		}
 	}
 
+	//Get a value from the properties file
+	//If the value already exists, then return it.
+	//Otherwise, try to get it,  If successful, return it.  Otherwise log an error and return null
+	public static String getPropertyByKey(String currVal, String key, Properties prop, Logger LOGGER){
+		if (currVal != null)
+			return currVal;
+		currVal = prop.getProperty(key);
+		if (currVal == null){
+			LOGGER.info("Failed to obtain property value for key="+key);//TODOKM
+			return null;
+		}
+		return currVal;
+	}
+	
+	/**
+	 * get the file path/name.
+	 * If it doesn't exist, create the file
+	 * @param fileManager
+	 * @param pathResolver
+	 * @param resourcePath
+	 * @param forTests
+	 * @param LOGGER
+	 * @return
+	 */
+	public static String getPropertiesPath(FileManager fileManager, PathResolver pathResolver, String resourcePath, boolean forTests, Logger LOGGER) {
+		final String propertiesPath = pathResolver
+				.getFocusedIdentifier(forTests ? Path.SRC_TEST_RESOURCES : Path.SRC_MAIN_RESOURCES, resourcePath);
+		final boolean propertiesPathExists = fileManager
+				.exists(propertiesPath);
+
+		if (!propertiesPathExists) {
+			OutputStream outputStream = fileManager.createFile(
+					propertiesPath).getOutputStream();
+			if (outputStream == null) {
+				LOGGER.info("Could not create properties file " + resourcePath);
+			}
+		}
+		
+		return propertiesPath;
+	}
+	
+	/**
+	 * save all values in input map into property file
+	 * if the values already exist, REPLACE them.  If there are already values in the property file that
+	 * do not appear in the map, keep them (but order of file may be changed)
+	 * @param propKeyValues - set of key/values to be entered into the property file
+	 * @param configPropertiesFilePathName - path/name of the configuration file
+	 * @param LOGGER
+	 * @return
+	 */
+	public static boolean createUpdateConfigPropertiesFile(final Map<String, String> propKeyValues, final String configPropertiesFilePathName, Logger LOGGER) {
+		Properties props = new Properties();
+		InputStream inputStr = null;
+		OutputStream outputStr = null;
+		boolean isSuccess = true;
+		try{
+			//get the existing file, in properties format
+			inputStr = new FileInputStream(configPropertiesFilePathName);
+			props.load(inputStr);
+			
+			Iterator<Entry<String, String>> entries = propKeyValues.entrySet().iterator();
+			while (entries.hasNext()){
+				Entry<String, String> oneEntry = entries.next();
+				props.setProperty(oneEntry.getKey(), oneEntry.getValue());
+			}
+			
+			//now save back into file
+			outputStr = new FileOutputStream(configPropertiesFilePathName);	
+			props.store(outputStr, "");
+		}
+		catch(FileNotFoundException e){
+			LOGGER.info("Exception received in trying to open input/output stream on file: " + configPropertiesFilePathName);//TODO KM
+			isSuccess = false;
+		}
+		catch(IOException e){
+			LOGGER.info("Exception received in trying to read or store properties from the property file: " + configPropertiesFilePathName);//TODO KM
+			isSuccess = false;
+		}
+		finally{
+			if ((!closeInput(inputStr, LOGGER)) || (!closeOutput(outputStr, LOGGER)))
+				isSuccess = false;
+		}
+		
+		return isSuccess;
+	}
+	
+	public static boolean closeInput(InputStream inputStr, Logger LOGGER){
+		if (inputStr != null){
+			try {
+				inputStr.close();
+			} catch (IOException e) {
+				LOGGER.info("Exception received in trying to close input stream:  " + e.toString());//TODO KM
+				return false;
+			}
+		}
+		return true;
+	}
+	public static boolean closeOutput(OutputStream outputStr, Logger LOGGER){
+		if (outputStr != null){
+			try {
+				outputStr.close();
+			} catch (IOException e) {
+				LOGGER.info("Exception received in trying to close output stream:  " + e.toString());//TODO KM
+				return false;
+			}
+		}
+		return true;
+	}
 }
