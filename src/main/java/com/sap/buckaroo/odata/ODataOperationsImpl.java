@@ -2,11 +2,13 @@ package com.sap.buckaroo.odata;
 
 import static org.springframework.roo.model.SpringJavaType.DISPATCHER_SERVLET;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Modifier;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -14,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
+
+import javax.ws.rs.DELETE;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.Validate;
@@ -138,7 +142,11 @@ public class ODataOperationsImpl implements ODataOperations {
 	public void setupWebAppProj() {
 		//Creates web.xml + springmvc.xml
 		webMvcOperations.installMinimalWebArtifacts();
-
+		
+		//delete webmvc-config.xml and its spring directory	
+		final String webmvcConfigPath = pathResolver.getFocusedIdentifier(Path.SRC_MAIN_WEBAPP,"WEB-INF\\spring");
+		fileManager.delete(webmvcConfigPath);
+		
 		// Verify that the web.xml already exists
 		final String webXmlPath = pathResolver.getFocusedIdentifier(
 				Path.SRC_MAIN_WEBAPP, WEB_XML);
@@ -149,20 +157,17 @@ public class ODataOperationsImpl implements ODataOperations {
 		final Document document = XmlUtils.readXml(fileManager
 				.getInputStream(webXmlPath));
 
-		WebXmlUtils.addServlet(projectOperations.getFocusedProjectName(),
-				DISPATCHER_SERVLET.getFullyQualifiedTypeName(), "/", 1,
-				document, "Handles Spring requests",
-				new WebXmlUtils.WebXmlParam("contextConfigLocation",
-						WEBMVC_CONFIG_XML));
+		//Adding welcome-file <welcome-file>index.html</welcome-file> in <welcome-file-list>
+		WebXmlUtils.addWelcomeFile("index.html", document, null);
 
 		fileManager.createOrUpdateTextFileIfRequired(webXmlPath,
 				XmlUtils.nodeToString(document), true);
 		
-		//Adding spring dependency to pom.xml
+		//Adding spring web dependency to pom.xml
 		final Element configuration = XmlUtils.getConfiguration(DeployCommands.class);
 		String moduleName = ConfigurationUtil.getCurrentPOM(projectOperations).getModuleName();
 		PomUtils.addDependencies(projectOperations, "/configuration/buckaroo/springWebMvc/dependencies/dependency", configuration, moduleName);
-		
+				
 		//Changing the project type from jar to war
 		projectOperations.updateProjectType(projectOperations.getFocusedModuleName(), ProjectType.WAR);
 	}
