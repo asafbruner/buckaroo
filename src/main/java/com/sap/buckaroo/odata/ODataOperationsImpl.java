@@ -193,7 +193,7 @@ public class ODataOperationsImpl implements ODataOperations {
 		com.sap.buckaroo.util.XMLUtils.removeElementFromXML(appContextTestContent,
 				"/beans/*[local-name()='annotation-driven' and @mode='aspectj']");
 
-		com.sap.buckaroo.util.XMLUtils.removeElementFromXML(appContextTestContent, "/beans/bean[@id='dataSource']");
+		com.sap.buckaroo.util.XMLUtils.removeElementFromXML(appContextTestContent, "/beans/*[@id='dataSource']");
 		com.sap.buckaroo.util.XMLUtils.removeElementFromXML(appContextTestContent, "/beans/bean[@id='transactionManager']");
 		com.sap.buckaroo.util.XMLUtils.removeElementFromXML(appContextTestContent, "/beans/bean[@id='entityManagerFactory']");
 
