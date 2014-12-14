@@ -1,6 +1,6 @@
 project --topLevelPackage com.sap.buckaroo --projectName buckaroodemo
 
-setup database --database HANA 
+database setup --database HANA 
 
 cds parsefile --filepathname C:\\Users\\i074921\\workspace\\cds.txt
 field string --fieldName name_aaa --class com.sap.roo.Topping
