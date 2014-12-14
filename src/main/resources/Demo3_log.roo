@@ -13,5 +13,4 @@ hcp setup config
 
 perform command --mavenCommand "package -DskipTests"
 
-hcp remote-deploy --account sapriver --host neo.ondemand.com --user P1940779381 --password 1Qa2Ws3Ed
-hcp remote-deploy --account sapriver --host neo.ondemand.com --user P1940779381 --password 1Qa2Ws3Ed --goal start
+hcp remote-deploy --account sapriver --host neo.ondemand.com --user P1940779381 --password 1Qa2Ws3Ed --goal deploy-start
