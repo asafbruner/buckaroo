@@ -73,7 +73,8 @@ public class ODataCommands implements CommandMarker {
     @CliCommand(value = "odata setup", help = "setup the configuration for embedding Olingo OData provider")
     public void setupOlingo(
     		@CliOption(key = "service", mandatory=false, help = "The service name in the URI") final String serviceBasePath,
-    		@CliOption(key = "class", mandatory=true, help = "The name of the factory class") final JavaType factoryClassName){
+    		@CliOption(key = "class", 	mandatory=false, unspecifiedDefaultValue="~.odata.factory", 
+    			help = "The name of the factory class") final JavaType factoryClassName){
     	operations.setupOlingo(factoryClassName, serviceBasePath);
     }
     
