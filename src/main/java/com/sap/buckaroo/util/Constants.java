@@ -22,6 +22,10 @@ public class Constants {
 	
 	//Commands
 	public static final String DEPLOY = "deploy";
+	public static final String UNDEPLOY = "undeploy";
+	public static final String START = "start";
+	public static final String STOP = "stop";
 	public static final String INSTALL_SDK = "install-sdk";
-
+	public static final String DEPLOY_START = "deploy-start";
+	public static final String STOP_UNDEPLOY = "stop-undeploy";
 }
