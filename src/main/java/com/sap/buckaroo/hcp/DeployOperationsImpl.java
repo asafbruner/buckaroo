@@ -205,14 +205,6 @@ public class DeployOperationsImpl implements DeployOperations {
 						return;
 					if ((password = getPropValFromFileIfNecessary(props, password, Constants.HCP_REMOTE_PSWD)) == null)
 						return;
-//					if ((account = FileUtil.getPropertyByKey(account, Constants.HCP_REMOTE_ACCOUNT, props, LOGGER)) == null)
-//						return;
-//					if ((host = FileUtil.getPropertyByKey(host, Constants.HCP_REMOTE_HOST, props, LOGGER)) == null)
-//						return;				
-//					if ((userName = FileUtil.getPropertyByKey(userName, Constants.HCP_REMOTE_USER, props, LOGGER)) == null)
-//						return;
-//					if ((password = FileUtil.getPropertyByKey(password, Constants.HCP_REMOTE_PSWD, props, LOGGER)) == null)
-//						return;
 				}catch (IOException e){
 					LOGGER.info("Exception received when opening file " + configPropertiesFilePathName + ": " + e.toString());//TODO KM
 					return;
@@ -234,8 +226,36 @@ public class DeployOperationsImpl implements DeployOperations {
 					return;//if we couldn't save the parameters for whatever reason, don't continue on (log was already written)
 			}
 		}
+		
+		//check the command, to see what to run
+		if (command.equals(Constants.DEPLOY_START)){
+			//deploy
+			String fullMavenCommand = buildFullMavenCommand(Constants.DEPLOY, host, account, userName, password);
+			runMavenCommand(fullMavenCommand);
+			//start
+			fullMavenCommand = buildFullMavenCommand(Constants.START, host, account, userName, password);
+			runMavenCommand(fullMavenCommand);
+		} else if (command.equals(Constants.STOP_UNDEPLOY)){
+			//stop
+			String fullMavenCommand = buildFullMavenCommand(Constants.STOP, host, account, userName, password);
+			runMavenCommand(fullMavenCommand);
+			//undeploy
+			fullMavenCommand = buildFullMavenCommand(Constants.UNDEPLOY, host, account, userName, password);
+			runMavenCommand(fullMavenCommand);
+		}
+		else{
+			//no tricks, just run the command as-is
 
-		StringBuffer sb = (new StringBuffer(NEO_PLUGIN_NAME)).append(":").append(command);
+			//build the full maven command, from command and parameters
+			String fullMavenCommand = buildFullMavenCommand(command, host, account, userName, password);
+		
+			//run it
+			runMavenCommand(fullMavenCommand);
+		}
+	}
+	
+	private String buildFullMavenCommand(String command, String host, String account, String userName, String password){
+		StringBuilder sb = (new StringBuilder(NEO_PLUGIN_NAME)).append(":").append(command);
 		if (!StringUtils.isBlank(host)) {
 			sb.append(" -D").append(SAP_CLOUD_HOST_PROP).append("=").append(host);
 		}
@@ -249,8 +269,13 @@ public class DeployOperationsImpl implements DeployOperations {
 			sb.append(" -D").append(SAP_CLOUD_PASSWORD_PROP).append("=").append(password);
 		}
 		sb.append(" -P " + POM_PROFILE_ID_VAL);
+		
+		return sb.toString();
+	}
+	
+	private void runMavenCommand(String fullMavenCommand){
 		try {
-			mavenOperations.executeMvnCommand(sb.toString());
+			mavenOperations.executeMvnCommand(fullMavenCommand);
 		} catch (IOException ioe) {
 			throw new IllegalStateException(ioe);
 		}

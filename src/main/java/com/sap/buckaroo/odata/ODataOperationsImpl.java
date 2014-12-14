@@ -816,12 +816,6 @@ public class ODataOperationsImpl implements ODataOperations {
 					return;
 				if ((password = getPropValFromFileIfNecessary(props, password, Constants.CONNECTION_AUTHENTICATION_PASSWORD)) == null)
 					return;
-//				if ((serviceBasePath = FileUtil.getPropertyByKey(serviceBasePath, Constants.ODATA_SERVICE_ENDPOINT, props, LOGGER)) == null)
-//					return;
-//				if ((username = FileUtil.getPropertyByKey(username, Constants.CONNECTION_AUTHENTICATION_USER, props, LOGGER)) == null)
-//					return;
-//				if ((password = FileUtil.getPropertyByKey(password, Constants.CONNECTION_AUTHENTICATION_PASSWORD, props, LOGGER)) == null)
-//					return;
 			}catch (IOException e){
 				LOGGER.info("Exception received when opening file " + configPropertiesFilePathName + ": " + e.toString());//TODO, needs KM review
 				return;

@@ -53,7 +53,7 @@ public class JpaSetupCommands implements CommandMarker {
 		// Nothing to do here
 	}
 	
-	@CliAvailabilityIndicator("setup database")
+	@CliAvailabilityIndicator("database setup")
 	public boolean isJpaSetupAvailable() {
 		return operations.isJpaSetupAvailable();
 	}
@@ -61,7 +61,7 @@ public class JpaSetupCommands implements CommandMarker {
 	
 	/**
 	 */
-    @CliCommand(value = "setup database", help = "setup database (Hana)")
+    @CliCommand(value = "database setup", help = "database setup (Hana)")
     public void doJpaSetup(@CliOption(key = "database", mandatory = true, help = "The system's DB type") final JpaSetupPropertyName propName) {
     	operations.run();
     }
