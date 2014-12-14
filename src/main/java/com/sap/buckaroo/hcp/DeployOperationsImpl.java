@@ -180,8 +180,7 @@ public class DeployOperationsImpl implements DeployOperations {
 
 		//We look for parameters only if it is a deploy command
 		Map<String, String> propKeyValues = new HashMap<String, String>();
-		if (command.equals(Constants.DEPLOY)){
-			
+		if (!command.equals(Constants.INSTALL_SDK)){
 			//get the configuration file's path/name
 			final String configPropertiesFilePathName= FileUtil.getPropertiesPath(fileManager, pathResolver, Constants.RESOURCE_DIR + Constants.CONFIG_PROPERTIES_FILE, false, LOGGER);
 			
@@ -226,6 +225,7 @@ public class DeployOperationsImpl implements DeployOperations {
 					return;//if we couldn't save the parameters for whatever reason, don't continue on (log was already written)
 			}
 		}
+		
 		
 		//check the command, to see what to run
 		if (command.equals(Constants.DEPLOY_START)){
