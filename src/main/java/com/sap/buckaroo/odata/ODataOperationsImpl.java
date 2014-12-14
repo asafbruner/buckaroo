@@ -1,14 +1,10 @@
 package com.sap.buckaroo.odata;
 
-import static org.springframework.roo.model.SpringJavaType.DISPATCHER_SERVLET;
-
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Modifier;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -16,8 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
-
-import javax.ws.rs.DELETE;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.Validate;
@@ -80,13 +74,13 @@ public class ODataOperationsImpl implements ODataOperations {
 
 	private static final String CONFIGURATION_BASE_PATH = "/configuration/buckaroo/olingo";
 	private static final String CONFIGURATION_APP_CONFIG_BASE_PATH = "/configuration/buckaroo/olingo/appContextConfig";
+	private static final String CONFIGURATION_WEBMVC_BASE_PATH = "/configuration/buckaroo/springWebMvc";
 	private static final String XML_NS_ODATA = "xmlns:odata";
 	private static final String XSI_SCHEMA_LOCATION = "xsi:schemaLocation";
 	private static final String ODATA_SERVICE_PROPERTIES_FILE = "odata-service.properties";
 	private static final String WEB_XML = "WEB-INF/web.xml";
-	private static final String WEBMVC_CONFIG_XML = "WEB-INF/spring/webmvc-config.xml";
-
 	
+	private static final String MAVEN_SUREFIRE_XPATH = "/project/build/plugins/plugin[artifactId = 'maven-surefire-plugin']";
 	
 	/** buckaroo specific details in the project setup files (such as pom.xml etc.) */
 	@Reference
@@ -166,7 +160,7 @@ public class ODataOperationsImpl implements ODataOperations {
 		//Adding spring web dependency to pom.xml
 		final Element configuration = XmlUtils.getConfiguration(DeployCommands.class);
 		String moduleName = ConfigurationUtil.getCurrentPOM(projectOperations).getModuleName();
-		PomUtils.addDependencies(projectOperations, "/configuration/buckaroo/springWebMvc/dependencies/dependency", configuration, moduleName);
+		PomUtils.addDependencies(projectOperations, CONFIGURATION_WEBMVC_BASE_PATH + "/dependencies/dependency", configuration, moduleName);
 				
 		//Changing the project type from jar to war
 		projectOperations.updateProjectType(projectOperations.getFocusedModuleName(), ProjectType.WAR);
@@ -198,7 +192,7 @@ public class ODataOperationsImpl implements ODataOperations {
 		com.sap.buckaroo.util.XMLUtils.removeElementFromXML(appContextTestContent,
 				"/beans/*[local-name()='annotation-driven' and @mode='aspectj']");
 
-		com.sap.buckaroo.util.XMLUtils.removeElementFromXML(appContextTestContent, "/beans/*[@id='dataSource']");
+		com.sap.buckaroo.util.XMLUtils.removeElementFromXML(appContextTestContent, "/beans/jndi-lookup[@id='dataSource']");
 		com.sap.buckaroo.util.XMLUtils.removeElementFromXML(appContextTestContent, "/beans/bean[@id='transactionManager']");
 		com.sap.buckaroo.util.XMLUtils.removeElementFromXML(appContextTestContent, "/beans/bean[@id='entityManagerFactory']");
 
@@ -216,6 +210,7 @@ public class ODataOperationsImpl implements ODataOperations {
 		Node excludeFilterNode = autoScanElement.getOwnerDocument().importNode(excludeFilter, true);
 		autoScanElement.appendChild(excludeFilterNode);
 
+		DomUtils.removeTextNodes(appContextTestContent);
 		fileManager.createOrUpdateTextFileIfRequired(appContextTestXml, XmlUtils.nodeToString(appContextTestContent), true);
 	}
 
@@ -391,8 +386,30 @@ public class ODataOperationsImpl implements ODataOperations {
 		appContextXml.appendChild(configOdataServiceNode);
 
 		DomUtils.removeTextNodes(appContextXml);
-		fileManager.createOrUpdateTextFileIfRequired(configPath, XmlUtils.nodeToString(appContextXml), false);
-		// LOGGER.info(XmlUtils.nodeToString(appContextXml));
+		fileManager.createOrUpdateTextFileIfRequired(configPath, XmlUtils.nodeToString(appContextXml), true);
+	}
+	
+	protected void excludeODataTest(JavaType testClass) {
+		final String pomPath = PomUtils.getCurrentPOM(projectOperations).getPath();
+		Document document = XmlUtils.readXml(fileManager.getInputStream(pomPath));
+		Element pomXml = document.getDocumentElement();
+		
+		Element surefirePluginExcludes = XmlUtils.findFirstElement(MAVEN_SUREFIRE_XPATH + "/configuration/excludes",
+				pomXml);
+		Validate.notNull(surefirePluginExcludes, "Cannot find excludes section in maven-surefire-plugin");
+		
+		final String testPattern = "**/"+testClass.getSimpleTypeName()+"Test.java";
+		Element excludeTest = XmlUtils.findFirstElement("exclude[text()="+ testPattern + "]", surefirePluginExcludes);
+		if (excludeTest != null) {
+			excludeTest.getParentNode().removeChild(excludeTest);
+		}
+
+		excludeTest = document.createElement("exclude");
+		excludeTest.setTextContent(testPattern);
+		surefirePluginExcludes.appendChild(excludeTest);
+		
+		fileManager.createOrUpdateTextFileIfRequired(pomPath, XmlUtils.nodeToString(pomXml), true);
+		
 	}
 
 	protected void createODataServiceProxyBean(JavaType serviceClass, Edm edm) throws Exception {
@@ -886,6 +903,7 @@ public class ODataOperationsImpl implements ODataOperations {
 					FileUtil.createUpdateConfigPropertiesFile(propKeyValues, FileUtil.getPropertiesPath(fileManager, pathResolver, Constants.RESOURCE_DIR + Constants.CONFIG_PROPERTIES_FILE, true, LOGGER), LOGGER);
 				createApplicationContextTest();
 				createODataServiceProxyTestBean(serviceBeanType, edm);
+				excludeODataTest(serviceBeanType);
 			}
 
 		} catch (Exception e) {
