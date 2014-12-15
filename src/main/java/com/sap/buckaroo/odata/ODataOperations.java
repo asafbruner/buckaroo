@@ -34,6 +34,10 @@ public interface ODataOperations {
 	 * @param serviceProxyName 
 	 */
 	void setupExternalService(String serviceBasePath, String username, String password, final String serviceProxyName, final boolean isTestAutomatically);
+
+	boolean isSetupTesterExtentionAvailable();
+
+	void setupTesterExtention(final JavaType factoryClassName);
 	
 	
 }

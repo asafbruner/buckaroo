@@ -1,0 +1,23 @@
+import java.io.InputStream;
+import org.apache.olingo.odata2.jpa.processor.api.model.JPAEdmExtension;
+import org.apache.olingo.odata2.jpa.processor.api.model.JPAEdmSchemaView;
+
+// see documentation here:
+// http://olingo.apache.org/doc/odata2/tutorials/jpafunctionimport.html
+// http://olingo.apache.org/doc/odata2/dependencies.html
+
+public class TesterProcessingExtension implements JPAEdmExtension {
+	  @Override
+	  public void extendJPAEdmSchema(final JPAEdmSchemaView arg0) {
+	  }
+
+	  @Override
+	  public void extendWithOperation(final JPAEdmSchemaView view) {
+	    view.registerOperations(TesterProcessor.class, null);
+	  }
+	  
+	  @Override
+	  public InputStream getJPAEdmMappingModelStream() {
+		  return null;
+	  }
+}
