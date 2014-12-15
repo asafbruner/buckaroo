@@ -78,6 +78,45 @@ public class ODataCommands implements CommandMarker {
     	operations.setupOlingo(factoryClassName, serviceBasePath);
     }
     
+	@CliAvailabilityIndicator("odata setup-test")
+	public boolean isSetupTesterExtentionAvailable() {
+		return operations.isSetupTesterExtentionAvailable();
+	}
+	
+/**
+ * Command for applying a tester extension for verifying the logger functionality
+ * Add an odata function import that writes to the log.
+ * 
+ * Available in development mode only (see ODATAOperationImpl.isSetupTesterExtentionAvailable documentation) 
+ * @param factoryClassName
+ */
+	@CliCommand(value = "odata setup-test", help = "add some tests to the ODATA inftrutructure")
+    public void setupTesterExtention(@CliOption(key = "class", 	mandatory=false, unspecifiedDefaultValue="~.odata.factory", 
+    			help = "The name of the factory class") final JavaType factoryClassName){
+    	operations.setupTesterExtention(factoryClassName);
+    }
+
+	@CliAvailabilityIndicator("odata setup-ext")
+	public boolean isSetupOlingoODataExAvailable() {
+		return operations.isSetupOlingoOdataAvailable() && isSetupTesterExtentionAvailable();
+	}
+	
+	/**
+     * Decoration of the "odata setup" command.
+     * Currently runs the  "odata setup" && "odata setup-test", but could be extended\configured according to input
+     * 
+     * Available only if   "odata setup" && "odata setup-test" are available
+     * 
+     */
+    @CliCommand(value = "odata setup-ext", help = "setup the configuration for embedding Olingo OData provider")
+    public void setupOlingoEx(
+    		@CliOption(key = "service", mandatory=false, help = "The service name in the URI") final String serviceBasePath,
+    		@CliOption(key = "class", 	mandatory=false, unspecifiedDefaultValue="~.odata.factory", 
+    			help = "The name of the factory class") final JavaType factoryClassName){
+    	operations.setupOlingo(factoryClassName, serviceBasePath);
+    	operations.setupTesterExtention(factoryClassName);
+    }
+
     @CliCommand(value = "webapp setup", help = "setup the configuration for web application")
     public void webAppSetupp() {
     	operations.setupWebAppProj();

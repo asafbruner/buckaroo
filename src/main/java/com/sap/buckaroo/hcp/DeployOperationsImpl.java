@@ -134,7 +134,7 @@ public class DeployOperationsImpl implements DeployOperations {
 		PomUtils.updateInputRemoteProperties(projectOperations, moduleName, host, account, userName, password, SAP_CLOUD_HOST_PROP,
 				SAP_CLOUD_ACCOUNT_PROP, SAP_CLOUD_USERNAME_PROP, SAP_CLOUD_PASSWORD_PROP);
 
-//		supportRemoteLogger(projectOperations, moduleName);
+		supportRemoteLogger(projectOperations, moduleName);
 	}
 
 	/**
@@ -151,12 +151,11 @@ public class DeployOperationsImpl implements DeployOperations {
 	 */
 	private void supportRemoteLogger(ProjectOperations projectOperations, String moduleName) {
 		PomUtils.setDependencyScope(projectOperations, moduleName, "org.slf4j", "slf4j-api", DependencyScope.PROVIDED);
+		PomUtils.setDependencyScope(projectOperations, moduleName, "org.slf4j", "jcl-over-slf4j", DependencyScope.TEST);
 		PomUtils.removeDependency(projectOperations, moduleName, "log4j", "log4j");
-		PomUtils.removeDependency(projectOperations, moduleName, "org.slf4j", "jcl-over-slf4j");
 		PomUtils.removeDependency(projectOperations, moduleName, "org.slf4j", "slf4j-log4j12");
 		PomUtils.removeDependency(projectOperations, moduleName, "commons-pool", "commons-pool");
 		PomUtils.removeDependency(projectOperations, moduleName, "commons-dbcp", "commons-dbcp");
-		PomUtils.excludeDependency(projectOperations, moduleName, "org.apache.tiles", "tiles-jsp", "org.slf4j", "jcl-over-slf4j");
 
 		final String log4jPropsPath = projectOperations.getPathResolver().getFocusedIdentifier(Path.SRC_MAIN_RESOURCES, LOG4J_PROPERTIES);
 
