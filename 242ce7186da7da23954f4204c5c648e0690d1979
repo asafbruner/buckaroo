@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_b1eb57af",
+        "filename": "src/main/java/com/sap/buckaroo/odata/ODataCommands.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-12-15T15:13:35Z",
+      "side": 1,
+      "message": "Why is this the default value?",
+      "range": {
+        "startLine": 87,
+        "startChar": 106,
+        "endLine": 87,
+        "endChar": 122
+      },
+      "revId": "242ce7186da7da23954f4204c5c648e0690d1979",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_11d22300",
+        "filename": "src/main/java/com/sap/buckaroo/odata/ODataCommands.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-12-15T15:13:35Z",
+      "side": 1,
+      "message": "Why is this false?",
+      "range": {
+        "startLine": 103,
+        "startChar": 44,
+        "endLine": 103,
+        "endChar": 49
+      },
+      "revId": "242ce7186da7da23954f4204c5c648e0690d1979",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_f1ccbf63",
+        "filename": "src/main/java/com/sap/buckaroo/odata/ODataCommands.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-12-15T15:13:35Z",
+      "side": 1,
+      "message": "Does this setup Olingo? maybe we can have a more descriptive name",
+      "range": {
+        "startLine": 106,
+        "startChar": 16,
+        "endLine": 106,
+        "endChar": 27
+      },
+      "revId": "242ce7186da7da23954f4204c5c648e0690d1979",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_31d767ef",
+        "filename": "src/main/java/com/sap/buckaroo/odata/ODataOperationsImpl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 662,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-12-15T15:13:35Z",
+      "side": 1,
+      "message": "Does this mean we have to maintain the two files?",
+      "range": {
+        "startLine": 662,
+        "startChar": 45,
+        "endLine": 662,
+        "endChar": 110
+      },
+      "revId": "242ce7186da7da23954f4204c5c648e0690d1979",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_7108cf91",
+        "filename": "src/main/resources/com/sap/buckaroo/hcp/JPAServiceFactoryWTesterExtention.txt",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-12-15T15:13:35Z",
+      "side": 1,
+      "message": "Isn\u0027t this very much like the file we already have now?",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 1
+      },
+      "revId": "242ce7186da7da23954f4204c5c648e0690d1979",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_b102376d",
+        "filename": "src/main/resources/com/sap/buckaroo/hcp/TesterProcessor.txt",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-12-15T15:13:35Z",
+      "side": 1,
+      "message": "Can you change this to \"info\"? it is better not to have error in our logs, even in tests",
+      "range": {
+        "startLine": 18,
+        "startChar": 12,
+        "endLine": 18,
+        "endChar": 17
+      },
+      "revId": "242ce7186da7da23954f4204c5c648e0690d1979",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
