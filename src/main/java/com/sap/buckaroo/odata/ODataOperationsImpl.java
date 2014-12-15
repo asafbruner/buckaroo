@@ -629,6 +629,16 @@ public class ODataOperationsImpl implements ODataOperations {
 	 * @param factoryClassName - the name of the factory class
 	 */
 	protected void createJPAServiceFactoryClass(JavaType factoryClass) {
+		createJPAServiceFactoryClass(factoryClass, false);
+	}
+
+	/**
+	 * Creates the generated OData service factory class
+	 * 
+	 * @param factoryClassName - the name of the factory class
+	 * @param withTestExt - flag that indicates whether to load test extension 
+	 */
+	protected void createJPAServiceFactoryClass(JavaType factoryClass, boolean  withTestExt) {
 
 		final String declaredByMetadataId = PhysicalTypeIdentifier.createIdentifier(factoryClass,
 				pathResolver.getFocusedPath(Path.SRC_MAIN_JAVA));
@@ -649,7 +659,9 @@ public class ODataOperationsImpl implements ODataOperations {
 		String newContents = typeParsingService.getCompilationUnitContents(cid);
 
 		// Adding rest of the imports
-		final InputStream inputStream = FileUtils.getInputStream(DeployCommands.class, "JPAServiceFactory.txt");
+		final String templateFile = (withTestExt) ? "JPAServiceFactoryWTesterExtention.txt" : "JPAServiceFactory.txt";
+		final InputStream inputStream = FileUtils.getInputStream(DeployCommands.class, templateFile);
+
 		String allClassContent = "";
 		try {
 			allClassContent = IOUtils.toString(inputStream);
@@ -935,5 +947,24 @@ public class ODataOperationsImpl implements ODataOperations {
 				+ "System.out.println((new StringBuilder(\"Entry: \")).append(entry.getMetadata().getUri()).toString());\n" + "}\n");
 		methodBuilder.setBodyBuilder(bodyBuilder);
 		return methodBuilder;
+	}
+
+/**
+ * To enable feature:
+ *
+ * in roo.bat - after the line "set ROO_OPTS=...." add the line:
+ * set ROO_OPTS=%ROO_OPTS% -Droo.tests.enabled
+ *
+ */
+	@Override
+	public boolean isSetupTesterExtentionAvailable() {
+		return System.getProperty("roo.tests.enabled") != null;
+	}
+
+	@Override
+	public void setupTesterExtention(final JavaType factoryClassName) {
+		createClassFromFile("TesterProcessingExtension.txt", "TesterProcessingExtension");
+		createClassFromFile("TesterProcessor.txt", "TesterProcessor");
+		createJPAServiceFactoryClass(factoryClassName, true);
 	}
 }
