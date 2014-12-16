@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_e0d223d1",
+        "filename": "src/main/java/com/sap/buckaroo/odata/ODataOperationsImpl.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-12-16T15:20:44Z",
+      "side": 1,
+      "message": "\"and\"",
+      "range": {
+        "startLine": 117,
+        "startChar": 28,
+        "endLine": 117,
+        "endChar": 30
+      },
+      "revId": "be7de7cae0d6a6a7f6e4878e6500cf7abd1010fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_c0d55fba",
+        "filename": "src/main/java/com/sap/buckaroo/odata/ODataOperationsImpl.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 435,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-12-16T15:20:44Z",
+      "side": 1,
+      "message": "Isn\u0027t the property name already uppercase?",
+      "range": {
+        "startLine": 435,
+        "startChar": 60,
+        "endLine": 435,
+        "endChar": 76
+      },
+      "revId": "be7de7cae0d6a6a7f6e4878e6500cf7abd1010fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_00d767c0",
+        "filename": "src/main/java/com/sap/buckaroo/odata/ODataOperationsImpl.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 445,
+      "author": {
+        "id": 1002869
+      },
+      "writtenOn": "2014-12-16T15:20:44Z",
+      "side": 1,
+      "message": "This function is very much like the one above it. Can we reuse code?",
+      "range": {
+        "startLine": 445,
+        "startChar": 16,
+        "endLine": 445,
+        "endChar": 32
+      },
+      "revId": "be7de7cae0d6a6a7f6e4878e6500cf7abd1010fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
