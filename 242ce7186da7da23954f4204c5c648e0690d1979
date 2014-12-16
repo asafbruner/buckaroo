@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_0578192a",
+        "filename": "src/main/java/com/sap/buckaroo/odata/ODataCommands.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002883
+      },
+      "writtenOn": "2014-12-16T07:07:17Z",
+      "side": 1,
+      "message": "To be aligned with the \"odata setup\" default values.",
+      "parentUuid": "fafc7978_b1eb57af",
+      "revId": "242ce7186da7da23954f4204c5c648e0690d1979",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_11d22300",
         "filename": "src/main/java/com/sap/buckaroo/odata/ODataCommands.java",
         "patchSetId": 1
@@ -42,6 +60,24 @@
         "endLine": 103,
         "endChar": 49
       },
+      "revId": "242ce7186da7da23954f4204c5c648e0690d1979",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_e59a3562",
+        "filename": "src/main/java/com/sap/buckaroo/odata/ODataCommands.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002883
+      },
+      "writtenOn": "2014-12-16T07:07:17Z",
+      "side": 1,
+      "message": "\"odata setup-ext\" - this is actually a decoration of the \"odata setup\" command, so all \"odata setup\" are defined the same.\nCurrently it provides the \"odata setup\" + \"odata setup-test\" (was added for adding it independently )but could be anything.\n\nAdded documentation.",
+      "parentUuid": "fafc7978_11d22300",
       "revId": "242ce7186da7da23954f4204c5c648e0690d1979",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -71,6 +107,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_65ae4587",
+        "filename": "src/main/java/com/sap/buckaroo/odata/ODataCommands.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002883
+      },
+      "writtenOn": "2014-12-16T07:07:17Z",
+      "side": 1,
+      "message": "What i do you mean by \"this\"?\nthe setupOlingo method? yes\nthe setupTesterExtention method? no",
+      "parentUuid": "fafc7978_f1ccbf63",
+      "revId": "242ce7186da7da23954f4204c5c648e0690d1979",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_31d767ef",
         "filename": "src/main/java/com/sap/buckaroo/odata/ODataOperationsImpl.java",
         "patchSetId": 1
@@ -88,6 +142,24 @@
         "endLine": 662,
         "endChar": 110
       },
+      "revId": "242ce7186da7da23954f4204c5c648e0690d1979",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_45a9817a",
+        "filename": "src/main/java/com/sap/buckaroo/odata/ODataOperationsImpl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 662,
+      "author": {
+        "id": 1002883
+      },
+      "writtenOn": "2014-12-16T07:07:17Z",
+      "side": 1,
+      "message": "As a start yes.\nWe can add a task to generate it in a better way.",
+      "parentUuid": "fafc7978_31d767ef",
       "revId": "242ce7186da7da23954f4204c5c648e0690d1979",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -117,6 +189,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_85ba49be",
+        "filename": "src/main/resources/com/sap/buckaroo/hcp/JPAServiceFactoryWTesterExtention.txt",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002883
+      },
+      "writtenOn": "2014-12-16T07:07:17Z",
+      "side": 1,
+      "message": "Yes.\nWe can add a task to add the testerExtension in a better way",
+      "parentUuid": "fafc7978_7108cf91",
+      "revId": "242ce7186da7da23954f4204c5c648e0690d1979",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_b102376d",
         "filename": "src/main/resources/com/sap/buckaroo/hcp/TesterProcessor.txt",
         "patchSetId": 1
@@ -134,6 +224,24 @@
         "endLine": 18,
         "endChar": 17
       },
+      "revId": "242ce7186da7da23954f4204c5c648e0690d1979",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_e5b195e2",
+        "filename": "src/main/resources/com/sap/buckaroo/hcp/TesterProcessor.txt",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002883
+      },
+      "writtenOn": "2014-12-16T07:07:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_b102376d",
       "revId": "242ce7186da7da23954f4204c5c648e0690d1979",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
