@@ -21,7 +21,10 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.olingo.odata2.api.edm.Edm;
 import org.apache.olingo.odata2.api.edm.EdmEntitySet;
 import org.apache.olingo.odata2.api.edm.EdmException;
+import org.apache.olingo.odata2.api.edm.EdmMultiplicity;
+import org.apache.olingo.odata2.api.edm.EdmNavigationProperty;
 import org.apache.olingo.odata2.api.edm.EdmParameter;
+import org.apache.olingo.odata2.api.edm.EdmTyped;
 import org.springframework.roo.addon.web.mvc.controller.WebMvcOperations;
 import org.springframework.roo.classpath.PhysicalTypeCategory;
 import org.springframework.roo.classpath.PhysicalTypeIdentifier;
@@ -82,6 +85,10 @@ public class ODataOperationsImpl implements ODataOperations {
 	
 	private static final String MAVEN_SUREFIRE_XPATH = "/project/build/plugins/plugin[artifactId = 'maven-surefire-plugin']";
 	
+	private static final String INTERFACES_PACKAGE = ".edmclient.interfaces.";
+	private static final String EDMCLIENT_PACKAGE = ".edmclient.";
+	private static final String ODATA_PACKAGE = ".odata.";
+	
 	/** buckaroo specific details in the project setup files (such as pom.xml etc.) */
 	@Reference
 	private ProjectOperations projectOperations;
@@ -107,6 +114,9 @@ public class ODataOperationsImpl implements ODataOperations {
 	/** connection and OData provider */
 	private ODataServiceProvider odataServiceProvider;
 
+	/** Mapping between EdmSet to Java Class*/
+	private HashMap<String, JavaType> entitySetToClassMapping = new HashMap<String, JavaType>();
+	
 	public ODataOperationsImpl() {
 		odataServiceProvider = new ODataServiceProvider();
 		odataServiceProvider.setConnection(new ODataConnection());
@@ -412,6 +422,117 @@ public class ODataOperationsImpl implements ODataOperations {
 		
 	}
 
+	private static String firstToUpperCase(String input) {
+		String output = input.substring(0, 1).toUpperCase() + input.substring(1);
+		return output;
+	}
+	
+	private void generatingGetter(String declaredByMetadataId, int modifier, EdmEntitySet entitySet, String propertyName, ClassOrInterfaceTypeDetailsBuilder cidBuilder) throws EdmException {
+		
+		MethodMetadataBuilder getMethodBuilder;
+		getMethodBuilder = new MethodMetadataBuilder(declaredByMetadataId);
+		getMethodBuilder.setModifier(modifier);
+		getMethodBuilder.setMethodName(new JavaSymbolName("get" + firstToUpperCase(propertyName)));
+		
+		EdmTyped returnType = entitySet.getEntityType().getProperty(propertyName);
+		JavaType getterReturnType = edmParsingService.getReturnType(returnType);
+		
+		getMethodBuilder.setReturnType(getterReturnType);
+		
+		cidBuilder.addMethod(getMethodBuilder);
+	}
+	
+	protected void generatingSetter(String declaredByMetadataId, int modifier, EdmEntitySet entitySet, String propertyName, ClassOrInterfaceTypeDetailsBuilder cidBuilder) throws EdmException {
+		MethodMetadataBuilder setMethodBuilder;
+		
+		//Property's Setter
+		setMethodBuilder = new MethodMetadataBuilder(declaredByMetadataId);
+		setMethodBuilder.setModifier(modifier);
+		setMethodBuilder.setMethodName(new JavaSymbolName("set" + firstToUpperCase(propertyName)));
+		setMethodBuilder.setReturnType(JavaType.VOID_PRIMITIVE);
+		
+		EdmTyped returnType = entitySet.getEntityType().getProperty(propertyName);
+		JavaType setterParameter = edmParsingService.getReturnType(returnType);
+		
+		setMethodBuilder.addParameter(propertyName, setterParameter); //The return type of the getter is the type for the parameter setter
+		
+		//Adding the getter and setter to the builder
+		cidBuilder.addMethod(setMethodBuilder);
+	}
+
+	protected void createProxyInterface(EdmEntitySet entitySet, Edm edm) throws EdmException {
+		
+		JavaType entitySetJavaType = null;
+		entitySetJavaType = new JavaType(projectOperations.getFocusedTopLevelPackage() + INTERFACES_PACKAGE + entitySet.getEntityType().getName());
+		
+		final String declaredByMetadataId = PhysicalTypeIdentifier.createIdentifier(entitySetJavaType,
+				pathResolver.getFocusedPath(Path.SRC_MAIN_JAVA));
+		
+		final ClassOrInterfaceTypeDetailsBuilder cidBuilder = new ClassOrInterfaceTypeDetailsBuilder(declaredByMetadataId, Modifier.PUBLIC,
+				entitySetJavaType, PhysicalTypeCategory.INTERFACE);
+		
+		//Add  @ODataEntry annotation
+		AnnotationMetadataBuilder annotationMB = new AnnotationMetadataBuilder();
+		annotationMB.setAnnotationType(new JavaType(projectOperations.getFocusedTopLevelPackage() + EDMCLIENT_PACKAGE + "ODataEntity"));
+		cidBuilder.addAnnotation(annotationMB);
+
+		//Update the map on a new mapping between EntitySet name and JavaType
+		entitySetToClassMapping.put(entitySet.getName(), entitySetJavaType);
+		
+		//For each property, add getter and setter methods
+		try {
+			
+			//Go through the <Properties> (May be ComplexTypes, Enums, Primitives) and generate for them getters and setters
+			for (String propertyName : entitySet.getEntityType().getPropertyNames()) {
+				generatingGetter(declaredByMetadataId, Modifier.PUBLIC, entitySet, propertyName, cidBuilder);
+				generatingSetter(declaredByMetadataId, Modifier.PUBLIC, entitySet, propertyName, cidBuilder);
+			}
+			
+			//Go through the <NavigationProperties> (associations) and generate for them getters and setters
+			for (String navigationPropertyName : entitySet.getEntityType().getNavigationPropertyNames()) {
+				
+				//Add getter for NavigationProperty
+				//Create method skeleton
+				MethodMetadataBuilder getMethodBuilder = new MethodMetadataBuilder(declaredByMetadataId, Modifier.PUBLIC, new JavaSymbolName("get" + firstToUpperCase(navigationPropertyName)), null, null);
+				
+				//Evaluate the return type 
+				//Return type is according to the *related* entity set and the multiplicity of the navigation property!
+				EdmTyped returnType = entitySet.getEntityType().getProperty(navigationPropertyName);
+				final EdmNavigationProperty edmNavigationProperty = (EdmNavigationProperty) returnType;
+				
+				//Fetch the related EntitySet according to the NavigationProperty
+				EdmEntitySet edmRelatedEntitySet = entitySet.getRelatedEntitySet(edmNavigationProperty);
+				
+				JavaType getterReturnType = null;
+				String returnTypeSetName = edmRelatedEntitySet.getName();
+				
+				if (!entitySetToClassMapping.containsKey(returnTypeSetName)) { //was not already created, need to create it now recursively
+					EdmEntitySet edmReturnTypeSet = edm.getEntityContainer(null).getEntitySet(returnTypeSetName);
+					createProxyInterface(edmReturnTypeSet, edm);
+				}
+				getterReturnType = entitySetToClassMapping.get(returnTypeSetName);
+				
+				//Multiplicity 1:n, need to generate List<E>, where E is the return type
+				if (edmNavigationProperty.getMultiplicity().compareTo(EdmMultiplicity.MANY) == 0) {
+					getterReturnType = edmParsingService.getFeedReturnType(getterReturnType); 
+				}
+				
+				getMethodBuilder.setReturnType(getterReturnType);
+				cidBuilder.addMethod(getMethodBuilder);
+				
+				//Add setter for NavigationProperty
+				MethodMetadataBuilder setMethodBuilder = new MethodMetadataBuilder(declaredByMetadataId, Modifier.PUBLIC, new JavaSymbolName("set" + firstToUpperCase(navigationPropertyName)), JavaType.VOID_PRIMITIVE, null);
+				setMethodBuilder.addParameter(navigationPropertyName, getterReturnType); //The return type of the getter is the type for the parameter setter
+				cidBuilder.addMethod(setMethodBuilder);
+				
+			}
+		} catch (EdmException e) {
+			e.printStackTrace();
+		}
+		
+		typeManagementService.createOrUpdateTypeOnDisk(cidBuilder.build());
+	}
+	
 	protected void createODataServiceProxyBean(JavaType serviceClass, Edm edm) throws Exception {
 
 		final String declaredByMetadataId = PhysicalTypeIdentifier.createIdentifier(serviceClass,
@@ -504,6 +625,9 @@ public class ODataOperationsImpl implements ODataOperations {
 		final List<EdmEntitySet> entitySets = edm.getDefaultEntityContainer().getEntitySets();
 		for (EdmEntitySet entitySet : entitySets) {
 
+			//Creates for each EntitySet a proxy interface
+			createProxyInterface(entitySet, edm);
+			
 			// initialize method builder
 			MethodMetadataBuilder methodBuilder = new MethodMetadataBuilder(declaredByMetadataId);
 			methodBuilder.setModifier(Modifier.PUBLIC);
@@ -730,9 +854,9 @@ public class ODataOperationsImpl implements ODataOperations {
 	 * @param filename - the filename to copy the content from
 	 * @param className - the new class name to generate
 	 */
-	protected void createClassFromFile(String filename, String className) {
+	protected void createClassFromFile(String filename, String className, String targetPackage) {
 		// Creating a class builder
-		JavaType EdmFactoryJT = new JavaType(projectOperations.getFocusedTopLevelPackage() + ".odata." + className);
+		JavaType EdmFactoryJT = new JavaType(targetPackage + className);
 		String packageName = EdmFactoryJT.getFullyQualifiedTypeName().substring(0,
 				EdmFactoryJT.getFullyQualifiedTypeName().lastIndexOf('.'));
 
@@ -763,16 +887,30 @@ public class ODataOperationsImpl implements ODataOperations {
 	}
 
 	private void createEdmFactory() {
-		createClassFromFile("EdmFactoryBean.txt", "EdmFactoryBean");
+		String targetPackage = projectOperations.getFocusedTopLevelPackage() + ODATA_PACKAGE;
+		createClassFromFile("EdmFactoryBean.txt", "EdmFactoryBean", targetPackage);
 	}
 
 	private void createConnectionBean() {
-		createClassFromFile("ODataConnectionBean.txt", "ODataConnectionBean");
+		String targetPackage = projectOperations.getFocusedTopLevelPackage() + ODATA_PACKAGE;
+		createClassFromFile("ODataConnectionBean.txt", "ODataConnectionBean", targetPackage);
 	}
 
 	private void createServiceProvider() {
-		createClassFromFile("ODataServiceProvider.txt", "ODataServiceProvider");
+		String targetPackage = projectOperations.getFocusedTopLevelPackage() + ODATA_PACKAGE;
+		createClassFromFile("ODataServiceProvider.txt", "ODataServiceProvider", targetPackage);
 	}
+	
+	private void createOlingoHandlerInvoker() {
+		String targetPackage = projectOperations.getFocusedTopLevelPackage() + EDMCLIENT_PACKAGE;
+		createClassFromFile("OlingoHandler.txt", "OlingoHandler", targetPackage);
+	}
+	
+	private void createODataEntityAnnotation() {
+		String targetPackage = projectOperations.getFocusedTopLevelPackage() + EDMCLIENT_PACKAGE;
+		createClassFromFile("ODataEntity.txt", "ODataEntity", targetPackage);
+	}
+	
 
 	protected void updateBean(Document document, final Element configuration, Element appContextXml, final String xPath) {
 		Element beanElement = XmlUtils.findFirstElement(xPath, appContextXml);
@@ -781,7 +919,7 @@ public class ODataOperationsImpl implements ODataOperations {
 		}
 		beanElement = XmlUtils.findFirstElement(CONFIGURATION_APP_CONFIG_BASE_PATH + xPath, configuration);
 		String className = beanElement.getAttribute("class");
-		beanElement.setAttribute("class", projectOperations.getFocusedTopLevelPackage() + ".odata." + className);
+		beanElement.setAttribute("class", projectOperations.getFocusedTopLevelPackage() + ODATA_PACKAGE + className);
 		Node edmFactoryBeanNode = document.importNode(beanElement, true);
 		appContextXml.appendChild(edmFactoryBeanNode);
 	}
@@ -890,7 +1028,10 @@ public class ODataOperationsImpl implements ODataOperations {
 		createEdmFactory();
 		createConnectionBean();
 		createServiceProvider();
-
+		
+		createOlingoHandlerInvoker();
+		createODataEntityAnnotation();
+		
 		setupODataServiceApplicationContext();
 
 		// consume external service and generate service proxy
@@ -904,7 +1045,7 @@ public class ODataOperationsImpl implements ODataOperations {
 			//find the name of the service
 			//TODO have the command set the name because we do not have access to the schema name here
 			String serviceName = serviceProxyName != null ? serviceProxyName : edm.getDefaultEntityContainer().getName();
-			JavaType serviceBeanType = new JavaType(projectOperations.getFocusedTopLevelPackage() + ".odata." + serviceName);
+			JavaType serviceBeanType = new JavaType(projectOperations.getFocusedTopLevelPackage() + ODATA_PACKAGE + serviceName);
 
 			createODataServiceProxyBean(serviceBeanType, edm);
 
@@ -923,6 +1064,7 @@ public class ODataOperationsImpl implements ODataOperations {
 			throw new IllegalStateException("failed to consume the external service", e);
 		}
 	}
+
 
 	private MethodMetadataBuilder createPrintUtilForTestBean(String declaredByMetadataId) {
 		// create utility function
@@ -963,8 +1105,9 @@ public class ODataOperationsImpl implements ODataOperations {
 
 	@Override
 	public void setupTesterExtention(final JavaType factoryClassName) {
-		createClassFromFile("TesterProcessingExtension.txt", "TesterProcessingExtension");
-		createClassFromFile("TesterProcessor.txt", "TesterProcessor");
+		String targetPackage = projectOperations.getFocusedTopLevelPackage() + ODATA_PACKAGE;
+		createClassFromFile("TesterProcessingExtension.txt", "TesterProcessingExtension", targetPackage);
+		createClassFromFile("TesterProcessor.txt", "TesterProcessor", targetPackage);
 		createJPAServiceFactoryClass(factoryClassName, true);
 	}
 }

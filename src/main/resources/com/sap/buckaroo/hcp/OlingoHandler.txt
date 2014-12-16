@@ -1,0 +1,40 @@
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+
+import org.apache.olingo.odata2.api.ep.entry.ODataEntry;
+
+public class OlingoHandler implements InvocationHandler {
+
+	private ODataEntry data;
+
+	public OlingoHandler(ODataEntry data) {
+		this.data = data;
+	}
+
+	@Override
+	public Object invoke(Object proxy, Method method, Object[] args)
+			throws Throwable {
+		String property = method.getName().substring(3);
+		if (method.getName().startsWith("set")) {
+			data.getProperties().put(property, args[0]);
+		} else if (method.getName().startsWith("get")) {
+			Object object = data.getProperties().get(property);
+			if (object instanceof ODataEntry) {
+				Class<?> returnType = method.getReturnType();
+				if (returnType.isAnnotationPresent(ODataEntity.class)) {
+					return Proxy.newProxyInstance(this.getClass()
+							.getClassLoader(), new Class<?>[] { returnType },
+							new OlingoHandler((ODataEntry) object));
+				} else {
+					throw new UnsupportedOperationException("Not supported yet");
+				}
+			} else {
+				return object;
+			}
+		}
+		return null;
+	}
+
+}

@@ -27,4 +27,10 @@ public interface EdmTypeParsingService {
 	 */
 	public JavaType getReturnType(EdmTyped edmTyped) throws EdmException;
 	
+	/**
+	 * @param className
+	 * @return JavaType construct that represent a given Java class Feed return type
+	 */
+	public JavaType getFeedReturnType(JavaType className);
+	
 }

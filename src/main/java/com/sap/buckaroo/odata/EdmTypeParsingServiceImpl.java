@@ -25,6 +25,15 @@ public class EdmTypeParsingServiceImpl implements EdmTypeParsingService {
 		        DataType.TYPE, null, returnTypeGenericParams);
 		return returnType;
 	}
+	
+	@Override
+	public JavaType getFeedReturnType(JavaType className) {
+		final List<JavaType> returnTypeGenericParams = new ArrayList<JavaType>();
+		returnTypeGenericParams.add(className);
+		JavaType returnType = new JavaType(List.class.getName(), 0,
+		        DataType.TYPE, null, returnTypeGenericParams);
+		return returnType;
+	}
 
 	@Override
 	public JavaType getParameterType(EdmParameter edmParameter)
