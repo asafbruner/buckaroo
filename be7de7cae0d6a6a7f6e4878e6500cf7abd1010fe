@@ -2,6 +2,40 @@
   "comments": [
     {
       "key": {
+        "uuid": "9a0b7d60_2fb629dd",
+        "filename": "src/main/java/com/sap/buckaroo/odata/EdmTypeParsingServiceImpl.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002914
+      },
+      "writtenOn": "2014-12-17T10:21:19Z",
+      "side": 1,
+      "message": "This entire utility class should be overwritten. it does not suppose to return javaType but real classes",
+      "revId": "be7de7cae0d6a6a7f6e4878e6500cf7abd1010fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_2fbaa9e1",
+        "filename": "src/main/java/com/sap/buckaroo/odata/ODataOperationsImpl.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002914
+      },
+      "writtenOn": "2014-12-17T10:21:19Z",
+      "side": 1,
+      "message": "The name of the package should not be hard coded but related to the service name",
+      "revId": "be7de7cae0d6a6a7f6e4878e6500cf7abd1010fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_e0d223d1",
         "filename": "src/main/java/com/sap/buckaroo/odata/ODataOperationsImpl.java",
         "patchSetId": 2
@@ -19,6 +53,23 @@
         "endLine": 117,
         "endChar": 30
       },
+      "revId": "be7de7cae0d6a6a7f6e4878e6500cf7abd1010fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_4fe28d04",
+        "filename": "src/main/java/com/sap/buckaroo/odata/ODataOperationsImpl.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 425,
+      "author": {
+        "id": 1002914
+      },
+      "writtenOn": "2014-12-17T10:21:19Z",
+      "side": 1,
+      "message": "This conversion code should be in a separate compilation unit",
       "revId": "be7de7cae0d6a6a7f6e4878e6500cf7abd1010fe",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -48,6 +99,23 @@
     },
     {
       "key": {
+        "uuid": "9a0b7d60_afe69914",
+        "filename": "src/main/java/com/sap/buckaroo/odata/ODataOperationsImpl.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 436,
+      "author": {
+        "id": 1002914
+      },
+      "writtenOn": "2014-12-17T10:21:19Z",
+      "side": 1,
+      "message": "same. + I think there is a utility in commons for capitalising",
+      "revId": "be7de7cae0d6a6a7f6e4878e6500cf7abd1010fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_00d767c0",
         "filename": "src/main/java/com/sap/buckaroo/odata/ODataOperationsImpl.java",
         "patchSetId": 2
@@ -65,6 +133,74 @@
         "endLine": 445,
         "endChar": 32
       },
+      "revId": "be7de7cae0d6a6a7f6e4878e6500cf7abd1010fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_8fe3d504",
+        "filename": "src/main/java/com/sap/buckaroo/odata/ODataOperationsImpl.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 463,
+      "author": {
+        "id": 1002914
+      },
+      "writtenOn": "2014-12-17T10:21:19Z",
+      "side": 1,
+      "message": "better name: createServiceBeans or createServiceInterface",
+      "revId": "be7de7cae0d6a6a7f6e4878e6500cf7abd1010fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_6f82f101",
+        "filename": "src/main/java/com/sap/buckaroo/odata/ODataOperationsImpl.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 468,
+      "author": {
+        "id": 1002914
+      },
+      "writtenOn": "2014-12-17T10:21:19Z",
+      "side": 1,
+      "message": "we need to add cache for the resolved types and the unresolved types 9as we did in the IR). This cache will also serve us in the next assignment of generating the service proxy",
+      "revId": "be7de7cae0d6a6a7f6e4878e6500cf7abd1010fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_af7b3928",
+        "filename": "src/main/java/com/sap/buckaroo/odata/ODataOperationsImpl.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 1033,
+      "author": {
+        "id": 1002914
+      },
+      "writtenOn": "2014-12-17T10:21:19Z",
+      "side": 1,
+      "message": "for the annotation we also need to add dependencies in the target project + we should design the set of annotation that we are providing",
+      "revId": "be7de7cae0d6a6a7f6e4878e6500cf7abd1010fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_6fddd142",
+        "filename": "src/main/resources/com/sap/buckaroo/hcp/ODataEntity.txt",
+        "patchSetId": 2
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1002914
+      },
+      "writtenOn": "2014-12-17T10:21:19Z",
+      "side": 1,
+      "message": "we should split the roo project to core and api so the target project will have just the minimal dependencies",
       "revId": "be7de7cae0d6a6a7f6e4878e6500cf7abd1010fe",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
