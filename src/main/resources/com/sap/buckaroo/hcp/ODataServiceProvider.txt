@@ -44,13 +44,14 @@ public class ODataServiceProvider  {
 		return EntityProvider.readMetadata(content, false);
 	}
 	
-	public ODataEntry readEntry(Edm edm, String entitySetName, String keyValue, String expand) throws IOException, ODataException {
-		String path = createURI(entitySetName, keyValue, expand);
+	public ODataEntry readEntry(Edm edm, String entitySetName, String keyName, String keyValue, String expand) throws IOException, ODataException {
+		String path = createURI(entitySetName, keyName, keyValue, expand);
 		EdmEntityContainer entityContainer = edm.getDefaultEntityContainer();
 		
 		InputStream content = connection.sendRequest(path, HttpMethod.GET.name(), null);
-		return EntityProvider.readEntry(connection.getHttpHeaderConnectType(), entityContainer.getEntitySet(entitySetName), content, EntityProviderReadProperties
-				.init().build());
+		List<ODataEntry> result = EntityProvider.readFeed(connection.getHttpHeaderConnectType(), entityContainer.getEntitySet(entitySetName), content, EntityProviderReadProperties
+				.init().build()).getEntries();
+		return result == null || result.isEmpty() ? null : result.get(0);
 	}
 	
 	public List<ODataEntry> readFeed(Edm edm, String entitySetName) throws IOException, ODataException{
@@ -70,8 +71,8 @@ public class ODataServiceProvider  {
 		return (result instanceof ODataFeed) ? ((ODataFeed)result).getEntries() : result;
 	}
 	
-	protected String createURI(String entitySetName, String keyValue, String expand) {
-		StringBuilder sb = new StringBuilder(createURI(entitySetName)).append("(").append(keyValue).append(")");
+	protected String createURI(String entitySetName, String keyField, String keyValue, String expand) {
+		StringBuilder sb = new StringBuilder(createURI(entitySetName)).append("?$filter=").append(keyField).append("%20eq%20").append(keyValue);
 		if (expand != null) {
 			sb.append("?expand=").append(expand);
 		}
