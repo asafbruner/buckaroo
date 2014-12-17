@@ -6,6 +6,7 @@ import java.util.List;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.olingo.odata2.api.edm.EdmException;
+import org.apache.olingo.odata2.api.edm.EdmMultiplicity;
 import org.apache.olingo.odata2.api.edm.EdmParameter;
 import org.apache.olingo.odata2.api.edm.EdmSimpleType;
 import org.apache.olingo.odata2.api.edm.EdmTypeKind;
@@ -38,28 +39,34 @@ public class EdmTypeParsingServiceImpl implements EdmTypeParsingService {
 	@Override
 	public JavaType getParameterType(EdmParameter edmParameter)
 			throws EdmException {
-		JavaType paramType;
-		if (EdmTypeKind.SIMPLE.equals(edmParameter.getType().getKind())) { //If parameter is simple type
-			EdmSimpleType simpleParam = (EdmSimpleType)edmParameter.getType();
-			paramType = new JavaType(simpleParam.getDefaultType());
-		}
-		else { //parameter is an Object
-			paramType = new JavaType("java.lang.Object");
-		}
-		return paramType;
+		return convertEdmTypeToJavaType(edmParameter);
 	}
 
 	@Override
 	public JavaType getReturnType(EdmTyped edmTyped) throws EdmException {
-		JavaType returnType;
+		return convertEdmTypeToJavaType(edmTyped);
+	}
+	
+	private JavaType convertEdmTypeToJavaType(EdmTyped edmTyped) throws EdmException {
+		
+		JavaType returnType = null;
+		
 		if (edmTyped == null) {
-			returnType = JavaType.VOID_PRIMITIVE;
-		} else if (edmTyped.getType() != null && EdmTypeKind.SIMPLE.equals(
-				edmTyped.getType().getKind())) {
-			EdmSimpleType stype = (EdmSimpleType)(edmTyped.getType());
-			returnType = new JavaType(stype.getDefaultType().getName());
-		} else {
+			return JavaType.VOID_PRIMITIVE;
+		} else if (edmTyped.getType() != null && EdmTypeKind.SIMPLE.equals(edmTyped.getType().getKind())) {
+			EdmSimpleType stype = (EdmSimpleType) (edmTyped.getType());
+			if (byte[].class.equals(stype.getDefaultType())) {
+				returnType = getFeedReturnType(new JavaType(java.lang.Byte.class.getName()));
+			} else {
+				returnType = new JavaType(stype.getDefaultType().getName());
+			}
+		} else { //
 			returnType = new JavaType(java.lang.Object.class.getName());
+		}
+		
+		//The edm type has n multiplicity -- need to convert to java list
+		if (EdmMultiplicity.MANY.equals(edmTyped.getMultiplicity())) {
+			returnType = getFeedReturnType(returnType);
 		}
 		return returnType;
 	}

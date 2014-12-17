@@ -432,7 +432,7 @@ public class ODataOperationsImpl implements ODataOperations {
 		MethodMetadataBuilder getMethodBuilder;
 		getMethodBuilder = new MethodMetadataBuilder(declaredByMetadataId);
 		getMethodBuilder.setModifier(modifier);
-		getMethodBuilder.setMethodName(new JavaSymbolName("get" + firstToUpperCase(propertyName)));
+		getMethodBuilder.setMethodName(new JavaSymbolName("get" + generateJavaSymbolFromEdmName(firstToUpperCase(propertyName))));
 		
 		EdmTyped returnType = entitySet.getEntityType().getProperty(propertyName);
 		JavaType getterReturnType = edmParsingService.getReturnType(returnType);
@@ -448,7 +448,7 @@ public class ODataOperationsImpl implements ODataOperations {
 		//Property's Setter
 		setMethodBuilder = new MethodMetadataBuilder(declaredByMetadataId);
 		setMethodBuilder.setModifier(modifier);
-		setMethodBuilder.setMethodName(new JavaSymbolName("set" + firstToUpperCase(propertyName)));
+		setMethodBuilder.setMethodName(new JavaSymbolName("set" + generateJavaSymbolFromEdmName(firstToUpperCase(propertyName))));
 		setMethodBuilder.setReturnType(JavaType.VOID_PRIMITIVE);
 		
 		EdmTyped returnType = entitySet.getEntityType().getProperty(propertyName);
@@ -463,7 +463,7 @@ public class ODataOperationsImpl implements ODataOperations {
 	protected void createProxyInterface(EdmEntitySet entitySet, Edm edm) throws EdmException {
 		
 		JavaType entitySetJavaType = null;
-		entitySetJavaType = new JavaType(projectOperations.getFocusedTopLevelPackage() + INTERFACES_PACKAGE + entitySet.getEntityType().getName());
+		entitySetJavaType = new JavaType(projectOperations.getFocusedTopLevelPackage() + INTERFACES_PACKAGE + generateJavaSymbolFromEdmName(entitySet.getEntityType().getName()));
 		
 		final String declaredByMetadataId = PhysicalTypeIdentifier.createIdentifier(entitySetJavaType,
 				pathResolver.getFocusedPath(Path.SRC_MAIN_JAVA));
@@ -480,56 +480,52 @@ public class ODataOperationsImpl implements ODataOperations {
 		entitySetToClassMapping.put(entitySet.getName(), entitySetJavaType);
 		
 		//For each property, add getter and setter methods
-		try {
-			
-			//Go through the <Properties> (May be ComplexTypes, Enums, Primitives) and generate for them getters and setters
-			for (String propertyName : entitySet.getEntityType().getPropertyNames()) {
-				generatingGetter(declaredByMetadataId, Modifier.PUBLIC, entitySet, propertyName, cidBuilder);
-				generatingSetter(declaredByMetadataId, Modifier.PUBLIC, entitySet, propertyName, cidBuilder);
-			}
-			
-			//Go through the <NavigationProperties> (associations) and generate for them getters and setters
-			for (String navigationPropertyName : entitySet.getEntityType().getNavigationPropertyNames()) {
-				
-				//Add getter for NavigationProperty
-				//Create method skeleton
-				MethodMetadataBuilder getMethodBuilder = new MethodMetadataBuilder(declaredByMetadataId, Modifier.PUBLIC, new JavaSymbolName("get" + firstToUpperCase(navigationPropertyName)), null, null);
-				
-				//Evaluate the return type 
-				//Return type is according to the *related* entity set and the multiplicity of the navigation property!
-				EdmTyped returnType = entitySet.getEntityType().getProperty(navigationPropertyName);
-				final EdmNavigationProperty edmNavigationProperty = (EdmNavigationProperty) returnType;
-				
-				//Fetch the related EntitySet according to the NavigationProperty
-				EdmEntitySet edmRelatedEntitySet = entitySet.getRelatedEntitySet(edmNavigationProperty);
-				
-				JavaType getterReturnType = null;
-				String returnTypeSetName = edmRelatedEntitySet.getName();
-				
-				if (!entitySetToClassMapping.containsKey(returnTypeSetName)) { //was not already created, need to create it now recursively
-					EdmEntitySet edmReturnTypeSet = edm.getEntityContainer(null).getEntitySet(returnTypeSetName);
-					createProxyInterface(edmReturnTypeSet, edm);
-				}
-				getterReturnType = entitySetToClassMapping.get(returnTypeSetName);
-				
-				//Multiplicity 1:n, need to generate List<E>, where E is the return type
-				if (edmNavigationProperty.getMultiplicity().compareTo(EdmMultiplicity.MANY) == 0) {
-					getterReturnType = edmParsingService.getFeedReturnType(getterReturnType); 
-				}
-				
-				getMethodBuilder.setReturnType(getterReturnType);
-				cidBuilder.addMethod(getMethodBuilder);
-				
-				//Add setter for NavigationProperty
-				MethodMetadataBuilder setMethodBuilder = new MethodMetadataBuilder(declaredByMetadataId, Modifier.PUBLIC, new JavaSymbolName("set" + firstToUpperCase(navigationPropertyName)), JavaType.VOID_PRIMITIVE, null);
-				setMethodBuilder.addParameter(navigationPropertyName, getterReturnType); //The return type of the getter is the type for the parameter setter
-				cidBuilder.addMethod(setMethodBuilder);
-				
-			}
-		} catch (EdmException e) {
-			e.printStackTrace();
+
+		//Go through the <Properties> (May be ComplexTypes, Enums, Primitives) and generate for them getters and setters
+		for (String propertyName : entitySet.getEntityType().getPropertyNames()) {
+			generatingGetter(declaredByMetadataId, Modifier.PUBLIC, entitySet, propertyName, cidBuilder);
+			generatingSetter(declaredByMetadataId, Modifier.PUBLIC, entitySet, propertyName, cidBuilder);
 		}
-		
+
+		//Go through the <NavigationProperties> (associations) and generate for them getters and setters
+		for (String navigationPropertyName : entitySet.getEntityType().getNavigationPropertyNames()) {
+
+			//Add getter for NavigationProperty
+			//Create method skeleton
+			MethodMetadataBuilder getMethodBuilder = new MethodMetadataBuilder(declaredByMetadataId, Modifier.PUBLIC, new JavaSymbolName("get" + generateJavaSymbolFromEdmName(firstToUpperCase(navigationPropertyName))), null, null);
+
+			//Evaluate the return type 
+			//Return type is according to the *related* entity set and the multiplicity of the navigation property!
+			EdmTyped returnType = entitySet.getEntityType().getProperty(navigationPropertyName);
+			final EdmNavigationProperty edmNavigationProperty = (EdmNavigationProperty) returnType;
+
+			//Fetch the related EntitySet according to the NavigationProperty
+			EdmEntitySet edmRelatedEntitySet = entitySet.getRelatedEntitySet(edmNavigationProperty);
+
+			JavaType getterReturnType = null;
+			String returnTypeSetName = edmRelatedEntitySet.getName();
+
+			if (!entitySetToClassMapping.containsKey(returnTypeSetName)) { //was not already created, need to create it now recursively
+				EdmEntitySet edmReturnTypeSet = edm.getEntityContainer(null).getEntitySet(returnTypeSetName);
+				createProxyInterface(edmReturnTypeSet, edm);
+			}
+			getterReturnType = entitySetToClassMapping.get(returnTypeSetName);
+
+			//Multiplicity 1:n, need to generate List<E>, where E is the return type
+			if (edmNavigationProperty != null && EdmMultiplicity.MANY.equals(edmNavigationProperty.getMultiplicity())) {
+				getterReturnType = edmParsingService.getFeedReturnType(getterReturnType); 
+			}
+
+			getMethodBuilder.setReturnType(getterReturnType);
+			cidBuilder.addMethod(getMethodBuilder);
+
+			//Add setter for NavigationProperty
+			MethodMetadataBuilder setMethodBuilder = new MethodMetadataBuilder(declaredByMetadataId, Modifier.PUBLIC, new JavaSymbolName("set" + generateJavaSymbolFromEdmName(firstToUpperCase(navigationPropertyName))), JavaType.VOID_PRIMITIVE, null);
+			setMethodBuilder.addParameter(navigationPropertyName, getterReturnType); //The return type of the getter is the type for the parameter setter
+			cidBuilder.addMethod(setMethodBuilder);
+
+		}
+
 		typeManagementService.createOrUpdateTypeOnDisk(cidBuilder.build());
 	}
 	
