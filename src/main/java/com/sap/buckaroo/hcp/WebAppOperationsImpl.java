@@ -27,7 +27,7 @@ import org.w3c.dom.Node;
 public class WebAppOperationsImpl implements WebAppOperations {
 
 	private static Logger LOGGER = Logger.getLogger(WebAppOperationsImpl.class.getName());
-
+	private static String WEB_UI5_RESOURCES = "\\\\iltlvp01\\TIP_HPAI_PLATFORM\\DevX\\Buckaroo\\web-ui5";
 	/** buckaroo specific details in the project setup files (such as pom.xml etc.) */
 
 	@Reference
@@ -72,7 +72,7 @@ public class WebAppOperationsImpl implements WebAppOperations {
 	private void installUI5Resources() {
 		final String webappPath = pathResolver.getFocusedIdentifier(Path.SRC_MAIN_WEBAPP,"");
 		File webappDir = new File(webappPath);
-		File sourceDir = new File("\\\\iltlvp01.tlv.sap.corp\\public\\asaf\\web-ui5");
+		File sourceDir = new File(WEB_UI5_RESOURCES);
 		FileUtils.copyRecursively(sourceDir, webappDir, false);
 	}
 
